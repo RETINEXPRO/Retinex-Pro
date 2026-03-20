@@ -1,2 +1,0 @@
-SECRET_KEY=super_secret_key
-DB_PATH=users.db
