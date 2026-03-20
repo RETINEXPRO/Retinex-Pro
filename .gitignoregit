@@ -1,0 +1,1 @@
+"backend/.env"  "backend/env"  rm --cached backend/envgit commit -m "remove env file from tracking"

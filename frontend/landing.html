@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Retinex Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:wght@300;400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}">
+<style>
+/* 1. Define Theme Variables */
+:root {
+  --bg-color: #07070f;
+  --text-main: #e0e0f0;
+  --text-muted: #686890;
+  --text-label: rgba(0,229,255,.7);
+  --pill-bg: rgba(255,255,255,.03);
+  --pill-border: rgba(255,255,255,.08);
+  --orb-opacity: 0.11;
+  --bottom-text: #38385a;
+  --grain-opacity: 0.045;
+}
+
+/* 2. Define Light Theme Overrides */
+.light-theme {
+  --bg-color: #f5f5fb;
+  --text-main: #1a1a2e;
+  --text-muted: #5a5a75;
+  --text-label: #a855f7; /* Swapped to purple for better light contrast */
+  --pill-bg: rgba(0,0,0,.04);
+  --pill-border: rgba(0,0,0,.1);
+  --orb-opacity: 0.15;
+  --bottom-text: #8e8eaf;
+  --grain-opacity: 0.02;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;overflow:hidden; transition: background 0.4s ease;}
+
+body{
+  background: var(--bg-color);
+  color: var(--text-main);
+  font-family:'Instrument Sans',sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:relative;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 100;
+  background: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  color: var(--text-main);
+  padding: 0.6rem 1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+  border-color: rgba(255,255,255,.15);
+  background: rgba(255,255,255,.05);
+}
+
+.light-theme .theme-toggle:hover {
+  border-color: rgba(0,0,0,.15);
+  background: rgba(0,0,0,.05);
+}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: var(--grain-opacity);
+}
+
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0; transition: opacity 0.5s ease;}
+.o1{width:600px;height:600px;background:radial-gradient(ellipse,rgba(0,229,255,var(--orb-opacity)),transparent 65%);top:-180px;left:-160px}
+.o2{width:500px;height:500px;background:radial-gradient(ellipse,rgba(168,85,247,var(--orb-opacity)),transparent 65%);bottom:-140px;right:-100px}
+.o3{width:260px;height:260px;background:radial-gradient(ellipse,rgba(255,85,51,var(--orb-opacity)),transparent 65%);top:45%;left:60%}
+
+.spectrum{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:10;
+  background:linear-gradient(to right,
+    #e84040,#e87040,#e8b040,#e8d840,
+    #a8e840,#40e870,#40e8c0,#40b8e8,
+    #4070e8,#7040e8,#b040e8,#e040b8);
+}
+
+.card{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:0 2rem;
+  max-width:680px;
+  width:100%;
+  animation:fadeIn .9s ease both;
+}
+
+.logo-wrap{
+  margin:0 auto 2.2rem;
+  width:90px;height:90px;
+  border-radius:50%;
+  background:rgba(0,229,255,.07);
+  border:1.5px solid rgba(0,229,255,.22);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 50px rgba(0,229,255,.18), 0 0 0 10px rgba(0,229,255,.04);
+  animation:fadeIn .7s .1s ease both;
+}
+.logo-wrap svg{
+  animation:blink 3.5s ease-in-out infinite;
+  filter:drop-shadow(0 0 10px rgba(0,229,255,.7));
+}
+@keyframes blink{
+  0%,85%,100%{transform:scaleY(1)}
+  92%{transform:scaleY(0.06)}
+}
+
+.label{
+  font-size:.72rem;font-weight:400;
+  letter-spacing:.18em;text-transform:uppercase;
+  color: var(--text-label);
+  margin-bottom:1.4rem;
+  animation:fadeIn .7s .2s ease both;
+}
+
+h1{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:clamp(2.8rem,7vw,5.5rem);
+  line-height:.96;
+  letter-spacing:-.04em;
+  margin-bottom:1.6rem;
+  animation:fadeIn .7s .3s ease both;
+  color: var(--text-main);
+}
+.grad{
+  background:linear-gradient(130deg,#00e5ff 0%,#a855f7 55%,#ff5533 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;background-size:200%;
+  animation:shimmer 7s linear infinite;
+}
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+
+.tag{
+  font-size:clamp(.95rem,2vw,1.1rem);
+  color: var(--text-muted);
+  font-weight:300;
+  line-height:1.75;
+  margin-bottom:3rem;
+  animation:fadeIn .7s .4s ease both;
+}
+
+.pills{
+  display:flex;gap:.55rem;justify-content:center;flex-wrap:wrap;
+  margin-bottom:3.2rem;
+  animation:fadeIn .7s .5s ease both;
+}
+.pill{
+  padding:.35rem 1rem;border-radius:100px;
+  font-size:.73rem;font-weight:400;letter-spacing:.04em;
+  border:1px solid var(--pill-border);
+  background: var(--pill-bg);
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.launch-row{
+  display:flex;align-items:center;justify-content:center;gap:1rem;
+  animation:fadeIn .7s .6s ease both;
+  flex-wrap:wrap;
+}
+.get-started{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.85rem 2.2rem;
+  background:#00e5ff;color:#000;
+  font-family:'Syne',sans-serif;
+  font-size:.95rem;font-weight:700;
+  letter-spacing:.01em;
+  border:none;border-radius:8px;
+  text-decoration:none;
+  box-shadow:0 0 40px rgba(0,229,255,.3);
+  transition:transform .2s,box-shadow .2s;
+}
+.get-started:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 60px rgba(0,229,255,.5);
+}
+
+.bottom-inline{
+  display:flex;align-items:center;justify-content:center;
+  gap:.5rem;margin-top:1.8rem;
+  animation:fadeIn .7s .8s ease both;
+}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--pill-border)}
+.bottom-text{font-size:.75rem;color: var(--bottom-text);letter-spacing:.08em}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+<div class="orb o3"></div>
+<div class="spectrum"></div>
+
+<div class="card">
+  <div class="logo-wrap">
+    <svg width="48" height="34" viewBox="0 0 64 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- outer eye shape -->
+      <path d="M2 22C2 22 13 2 32 2C51 2 62 22 62 22C62 22 51 42 32 42C13 42 2 22 2 22Z"
+        stroke="#00e5ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="rgba(0,229,255,0.06)"/>
+      <!-- iris -->
+      <circle cx="32" cy="22" r="10" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="2.5"/>
+      <!-- pupil -->
+      <circle cx="32" cy="22" r="5" fill="#00e5ff"/>
+      <!-- glint -->
+      <circle cx="36" cy="18" r="2" fill="rgba(255,255,255,0.7)"/>
+    </svg>
+  </div>
+
+  <p class="label">Colorblindness Awareness</p>
+
+  <h1>RETINEX<br/><span class="grad">PRO</span></h1>
+
+  <p class="tag">
+    A project exploring how 300+ million people<br/>
+    experience colour differently — and how we design for everyone.
+  </p>
+
+  <div class="pills">
+    <span class="pill">Deuteranomaly</span>
+    <span class="pill">Protanomaly</span>
+    <span class="pill">Deuteranopia</span>
+    <span class="pill">Protanopia</span>
+    <span class="pill">Tritanopia</span>
+    <span class="pill">Tritanomaly</span>
+    <span class="pill">Achromatopsia</span>
+  </div>
+
+  <div class="launch-row">
+    <a class="get-started" href="/app">
+      Get Started
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>
+
+  <div class="bottom-inline">
+    <div class="dot"></div>
+    <p class="bottom-text">RETINEX PRO - 2026</p>
+    <div class="dot"></div>
+  </div>
+</div>
+
+<script>
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-theme');
+  const btn = document.getElementById('themeBtn');
+  btn.innerText = isLight ? "Switch To Dark" : "Switch To Light";
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+
+// Load saved theme preference on page load
+document.addEventListener('DOMContentLoaded', function(){
+  const saved = localStorage.getItem('theme');
+  const btn = document.getElementById('themeBtn');
+  
+  if(saved === 'light'){
+    document.body.classList.add('light-theme');
+    btn.innerText = "Switch To Dark";
+  } else {
+    btn.innerText = "Switch To Light";
+  }
+});
+</script>
+
+</body>
+</html>
