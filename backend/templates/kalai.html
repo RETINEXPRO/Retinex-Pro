@@ -1,0 +1,2659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Retinex Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%}
+
+/* ═══ CSS VARIABLES FOR THEMING ═══ */
+:root {
+  --bg-primary: #07070f;
+  --bg-secondary: rgba(7,7,15,.85);
+  --bg-tertiary: rgba(255,255,255,.025);
+  --bg-card: rgba(12, 12, 22, 0.9);
+  --bg-hover: rgba(0,229,255,.05);
+  --bg-gradient-from: rgba(0,229,255,.06);
+  --bg-gradient-to: rgba(168,85,247,.06);
+  
+  --text-primary: #e0e0f0;
+  --text-secondary: #5a5a80;
+  --text-tertiary: #4a4a6a;
+  --text-muted: #3a3a58;
+  --text-nav: #4a4a6a;
+  
+  --border-light: rgba(255,255,255,.05);
+  --border-medium: rgba(255,255,255,.06);
+  --border-strong: rgba(255,255,255,.12);
+  
+  --accent-cyan: #00e5ff;
+  --accent-purple: #a855f7;
+  --accent-orange: #ff5533;
+  
+  --noise-opacity: 0.045;
+  --orb1-opacity: 0.11;
+  --orb2-opacity: 0.09;
+  --orb3-opacity: 0.07;
+}
+
+body.light-theme {
+  --bg-primary: #f5f5fb;
+  --bg-secondary: rgba(255,255,255,.95);
+  --bg-tertiary: rgba(0,0,0,.04);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-hover: rgba(0,150,200,.08);
+  --bg-gradient-from: rgba(0,150,200,.05);
+  --bg-gradient-to: rgba(150,100,200,.05);
+  
+  --text-primary: #121222;
+  --text-secondary: #5a5a75;
+  --text-tertiary: #666688;
+  --text-muted: #9e9eb1;
+  --text-nav: #666688;
+  
+  --border-light: rgba(0,0,0,.06);
+  --border-medium: rgba(0,0,0,.08);
+  --border-strong: rgba(0,0,0,.15);
+  
+  --accent-cyan: #0088aa;
+  --accent-purple: #8844cc;
+  --accent-orange: #dd4422;
+  
+  --noise-opacity: 0.02;
+  --orb1-opacity: 0.05;
+  --orb2-opacity: 0.04;
+  --orb3-opacity: 0.03;
+}
+
+body{
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family:'Instrument Sans',sans-serif;
+  min-height:100vh;
+  position:relative;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* noise */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  opacity: var(--noise-opacity);
+  transition: opacity 0.3s ease;
+}
+
+/* orbs */
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
+.o1{width:650px;height:650px;background:radial-gradient(ellipse,rgba(0,229,255,var(--orb1-opacity)),transparent 65%);top:-200px;left:-180px;transition:background 0.3s ease}
+.o2{width:550px;height:550px;background:radial-gradient(ellipse,rgba(168,85,247,var(--orb2-opacity)),transparent 65%);bottom:-160px;right:-120px;transition:background 0.3s ease}
+.o3{width:300px;height:300px;background:radial-gradient(ellipse,rgba(255,85,51,var(--orb3-opacity)),transparent 65%);top:40%;left:62%;transition:background 0.3s ease}
+
+/* spectrum top */
+.spectrum{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:20;
+  background:linear-gradient(to right,#e84040,#e87040,#e8b040,#e8d840,#a8e840,#40e870,#40e8c0,#40b8e8,#4070e8,#7040e8,#b040e8,#e040b8);
+}
+
+/* ═══ THEME TOGGLE BUTTON ═══ */
+.theme-switcher {
+  padding: 0.4rem 1.1rem;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-nav);
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.theme-switcher:hover {
+  color: var(--text-primary);
+  border-color: rgba(255,255,255,.3);
+  background: rgba(255,255,255,.04);
+  transform: none;
+  box-shadow: none;
+}
+
+.light-theme .theme-switcher {
+  color: var(--text-nav);
+  border-color: var(--border-strong);
+}
+
+.light-theme .theme-switcher:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: rgba(0,0,0,.04);
+}
+
+body.light-theme .orb {
+  filter: blur(100px) brightness(0.9);
+}
+
+/* ═══ PAGES ═══ */
+.page{
+  position:fixed;inset:0;overflow-y:auto;
+  z-index:1;
+  transition:opacity .45s ease, transform .45s ease;
+}
+.page.gone{
+  opacity:0;pointer-events:none;transform:scale(.97);
+}
+
+/* nav bar */
+.nav{
+  position:sticky;top:0;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 2rem;
+  background: var(--bg-secondary);
+  border-bottom:1px solid var(--border-light);
+  backdrop-filter:blur(20px);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.nav-logo{display:flex;align-items:center;gap:.5rem;cursor:pointer}
+.nav-eye{
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.light-theme .nav-eye {
+  background: rgba(0,150,200,.12);
+  border-color: rgba(0,150,200,.3);
+}
+
+.light-theme .nav-eye svg {
+  stroke: var(--accent-cyan);
+}
+
+.nav-eye svg{animation:blink 4s ease-in-out infinite;stroke:#00e5ff;transition:stroke 0.3s ease}
+@keyframes blink{0%,88%,100%{transform:scaleY(1)}94%{transform:scaleY(0.08)}}
+.nav-name{font-family:'Syne',sans-serif;font-weight:800;font-size:.95rem;letter-spacing:-.02em}
+.nav-name em{font-style:normal;background:linear-gradient(130deg,#00e5ff,#a855f7 60%,#ff5533);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.light-theme .nav-name em {
+  background: linear-gradient(130deg,#0088aa,#8844cc 60%,#dd4422);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-right{display:flex;align-items:center;gap:.6rem}
+.nav-btn{
+  padding:.4rem 1.1rem;border-radius:8px;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;border:none;transition:all .2s;letter-spacing:.01em;
+}
+.nav-btn.ghost{background:transparent;color:var(--text-nav);border:1px solid var(--border-strong)}
+.nav-btn.ghost:hover{color:var(--text-primary);border-color:rgba(255,255,255,.18)}
+
+.light-theme .nav-btn.ghost {
+  color: var(--text-tertiary);
+  border-color: var(--border-strong);
+}
+
+.light-theme .nav-btn.ghost:hover {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.nav-btn.solid{background:var(--accent-cyan);color:#000;box-shadow:0 0 20px rgba(0,229,255,.25);transition: all 0.3s ease}
+
+/* ═══ PROFILE DROPDOWN ═══ */
+.profile-dropdown-wrap {
+  position: relative;
+}
+.profile-btn {
+  display: flex; align-items: center; gap: .45rem;
+  padding: .4rem 1rem .4rem .7rem;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-size: .78rem; font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(0,229,255,.35);
+  background: rgba(0,229,255,.1);
+  color: #00e5ff;
+  transition: all .2s;
+  letter-spacing: .01em;
+}
+.profile-btn:hover { background: rgba(0,229,255,.18); box-shadow: 0 0 20px rgba(0,229,255,.2); }
+.profile-btn .p-avatar {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: linear-gradient(135deg, #00e5ff, #a855f7);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .62rem; font-weight: 800; color: #000;
+  flex-shrink: 0;
+}
+.profile-btn .p-arrow {
+  transition: transform .2s;
+  color: #00e5ff;
+}
+.profile-btn.open .p-arrow { transform: rotate(180deg); }
+
+.profile-menu {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  min-width: 200px;
+  background: rgba(10,10,22,.97);
+  border: 1px solid rgba(0,229,255,.18);
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(0,229,255,.06);
+  backdrop-filter: blur(20px);
+  overflow: hidden;
+  opacity: 0; pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 200;
+}
+.profile-menu.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+.profile-menu-header {
+  padding: .85rem 1rem .75rem;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.profile-menu-id {
+  font-size: .72rem; color: var(--text-muted);
+  letter-spacing: .08em; text-transform: uppercase;
+  margin-bottom: .25rem;
+}
+.profile-menu-email {
+  font-family: 'Syne', sans-serif;
+  font-size: .82rem; font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+.profile-menu-logout {
+  display: flex; align-items: center; gap: .55rem;
+  width: 100%; padding: .75rem 1rem;
+  background: transparent; border: none;
+  font-family: 'Syne', sans-serif;
+  font-size: .82rem; font-weight: 700;
+  color: #ff5533; cursor: pointer;
+  transition: background .15s;
+  text-align: left;
+}
+.profile-menu-logout:hover { background: rgba(255,85,51,.08); }
+
+/* light-theme overrides */
+.light-theme .profile-btn {
+  border-color: rgba(0,150,200,.4);
+  background: rgba(0,150,200,.1);
+  color: var(--accent-cyan);
+}
+.light-theme .profile-btn:hover { background: rgba(0,150,200,.2); }
+.light-theme .profile-btn .p-arrow { color: var(--accent-cyan); }
+.light-theme .profile-menu {
+  background: rgba(245,245,251,.97);
+  border-color: rgba(0,150,200,.2);
+  box-shadow: 0 8px 40px rgba(0,0,0,.15);
+}
+
+.light-theme .nav-btn.solid {
+  background: var(--accent-cyan);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0,150,200,.2);
+}
+
+.nav-btn.solid:hover{box-shadow:0 0 36px rgba(0,229,255,.45);transform:translateY(-1px)}
+
+.light-theme .nav-btn.solid:hover {
+  box-shadow: 0 0 36px rgba(0,150,200,.35);
+}
+
+/* ═══ HOME PAGE ═══ */
+#home .hero{
+  min-height:calc(100vh - 3px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:3rem 1.5rem 5rem;
+  position:relative;
+}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:.45rem;
+  padding:.32rem .95rem;
+  background:rgba(0,229,255,.07);
+  border:1px solid rgba(0,229,255,.16);
+  border-radius:100px;
+  font-size:.7rem;font-weight:500;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(0,229,255,.75);
+  margin-bottom:1.6rem;
+  animation:up .6s .05s ease both;
+  transition: all 0.3s ease;
+}
+
+.light-theme .hero-tag {
+  background: rgba(0,150,200,.1);
+  border-color: rgba(0,150,200,.25);
+  color: rgba(0,150,200,.8);
+}
+
+.hero-dot{width:5px;height:5px;border-radius:50%;background:#00e5ff;box-shadow:0 0 7px #00e5ff;animation:pulse 2s ease-in-out infinite;transition:background 0.3s ease, box-shadow 0.3s ease}
+
+.light-theme .hero-dot {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 7px var(--accent-cyan);
+}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.hero-title{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(3rem,9vw,6.5rem);
+  line-height:.93;letter-spacing:-.04em;
+  margin-bottom:1.6rem;
+  animation:up .6s .15s ease both;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+.hero-title .t1{display:block}
+.hero-title .t2{
+  display:block;
+  background:linear-gradient(130deg,#00e5ff 0%,#a855f7 55%,#ff5533 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;background-size:200%;
+  animation:shimmer 7s linear infinite;
+}
+
+.light-theme .hero-title .t2 {
+  background: linear-gradient(130deg,#0088aa 0%,#8844cc 55%,#dd4422 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes shimmer{0%{background-position:0%}100%{background-position:200%}}
+
+.hero-desc{
+  max-width:520px;margin:0 auto 2.2rem;
+  font-size:clamp(.92rem,1.8vw,1.07rem);
+  color:var(--text-secondary);font-weight:300;line-height:1.85;
+  animation:up .6s .22s ease both;
+  transition: color 0.3s ease;
+}
+.hero-desc strong{color:var(--text-tertiary);font-weight:400;transition:color 0.3s ease}
+
+.hero-actions{
+  display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center;
+  margin-bottom:3.5rem;
+  animation:up .6s .3s ease both;
+}
+.ha-primary{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.85rem 2.4rem;
+  background:var(--accent-cyan);color:#000;
+  font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;
+  border:none;border-radius:10px;cursor:pointer;
+  box-shadow:0 0 50px rgba(0,229,255,.3);
+  transition:transform .2s,box-shadow .2s;
+}
+
+.light-theme .ha-primary {
+  background: var(--accent-cyan);
+  color: #fff;
+  box-shadow: 0 0 50px rgba(0,150,200,.2);
+}
+
+.ha-primary:hover{transform:translateY(-3px);box-shadow:0 0 70px rgba(0,229,255,.5)}
+
+.light-theme .ha-primary:hover {
+  box-shadow: 0 0 70px rgba(0,150,200,.35);
+}
+
+.ha-secondary{
+  display:inline-flex;align-items:center;gap:.6rem;
+  padding:.85rem 2rem;
+  background:transparent;color:var(--text-primary);
+  font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;
+  border:1px solid var(--border-strong);border-radius:10px;cursor:pointer;
+  transition:all .2s;
+}
+.ha-secondary:hover{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.04)}
+
+.light-theme .ha-secondary:hover {
+  border-color: var(--border-strong);
+  background: rgba(0,0,0,.04);
+}
+
+/* stats row */
+.stats-row{
+  display:flex;gap:2.5rem;justify-content:center;flex-wrap:wrap;
+  animation:up .6s .38s ease both;
+}
+.stat{text-align:center}
+.stat-n{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;color:var(--text-primary);transition:color 0.3s ease}
+.stat-l{font-size:.72rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-top:.15rem;transition:color 0.3s ease}
+
+/* section divider */
+.sec-div{
+  width:100%;max-width:900px;margin:0 auto;
+  border-top:1px solid var(--border-light);
+  padding:4rem 2rem;
+  transition: border-color 0.3s ease;
+}
+
+/* about section */
+.about-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:2rem;
+  max-width:900px;margin:0 auto;padding:0 2rem 5rem;
+}
+@media(max-width:640px){.about-grid{grid-template-columns:1fr}}
+.about-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-medium);
+  border-radius:14px;padding:1.5rem;
+  transition:border-color .2s,background .2s;
+}
+.about-card:hover{border-color:rgba(0,229,255,.18);background:var(--bg-hover)}
+
+.light-theme .about-card:hover {
+  border-color: rgba(0,150,200,.25);
+  background: rgba(0,150,200,.08);
+}
+
+.ac-icon{
+  width:36px;height:36px;border-radius:9px;
+  background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.12);
+  display:flex;align-items:center;justify-content:center;margin-bottom:1rem;
+  transition: all 0.3s ease;
+}
+
+.light-theme .ac-icon {
+  background: rgba(0,150,200,.12);
+  border-color: rgba(0,150,200,.2);
+}
+
+.light-theme .ac-icon svg {
+  stroke: var(--accent-cyan);
+}
+
+.ac-title{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:800;margin-bottom:.45rem;color:var(--text-primary);transition:color 0.3s ease}
+.ac-desc{font-size:.82rem;color:var(--text-tertiary);line-height:1.75;font-weight:300;transition:color 0.3s ease}
+
+/* section label */
+.sec-label{
+  font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);
+  margin-bottom:1rem;
+  display:flex;align-items:center;gap:.7rem;
+  transition: color 0.3s ease;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border-light);transition:background 0.3s ease}
+
+/* disease preview cards */
+.disease-peek{
+  max-width:900px;margin:0 auto;padding:0 2rem 6rem;
+}
+.dp-title{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,4vw,2.2rem);font-weight:800;letter-spacing:-.03em;color:var(--text-primary);margin-bottom:.6rem;transition:color 0.3s ease}
+.dp-sub{font-size:.88rem;color:var(--text-tertiary);font-weight:300;margin-bottom:2rem;max-width:480px;line-height:1.7;transition:color 0.3s ease}
+.dp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.75rem}
+.dp-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-medium);
+  border-radius:12px;padding:1.1rem 1.2rem;
+  cursor:pointer;transition:all .25s;
+  display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+}
+.dp-card:hover{border-color:rgba(0,229,255,.3);background:var(--bg-hover);transform:translateY(-2px)}
+
+.light-theme .dp-card:hover {
+  border-color: rgba(0,150,200,.3);
+  background: rgba(0,150,200,.08);
+}
+
+.dp-card-name{font-family:'Syne',sans-serif;font-size:.85rem;font-weight:700;color:#c0c0d8;transition:color 0.3s ease}
+
+.light-theme .dp-card-name {
+  color: var(--text-primary);
+}
+
+.dp-card-type{font-size:.68rem;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase;margin-top:.2rem;transition:color 0.3s ease}
+.dp-arr{color:var(--text-muted);flex-shrink:0;transition:color 0.3s ease}
+.dp-card:hover .dp-arr{color:var(--accent-cyan)}
+
+/* colour swatch on card */
+.dp-swatch{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.cta-band{
+  max-width:900px;margin:0 auto 6rem;padding:2rem;
+  background:linear-gradient(135deg,var(--bg-gradient-from),var(--bg-gradient-to));
+  border:1px solid rgba(0,229,255,.1);border-radius:18px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.2rem;
+  transition: all 0.3s ease;
+}
+
+.light-theme .cta-band {
+  border-color: rgba(0,150,200,.15);
+}
+
+.cta-band-txt h3{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--text-primary);margin-bottom:.3rem;transition:color 0.3s ease}
+.cta-band-txt p{font-size:.83rem;color:var(--text-tertiary);font-weight:300;max-width:400px;line-height:1.6;transition:color 0.3s ease}
+
+/* foot */
+.foot{
+  border-top:1px solid var(--border-light);
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+  padding:1.5rem;z-index:2;
+  transition: border-color 0.3s ease;
+}
+.fdot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.1);transition:background 0.3s ease}
+
+.light-theme .fdot {
+  background: rgba(0,0,0,.15);
+}
+
+.ftxt{font-size:.7rem;color:var(--text-muted);letter-spacing:.08em;transition:color 0.3s ease}
+
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* ═══ DISEASE LIST PAGE ═══ */
+#dlist .dl-wrap{
+  max-width:900px;margin:0 auto;padding:3rem 2rem 6rem;
+}
+.dl-hero{margin-bottom:3rem}
+.dl-title{font-family:'Syne',sans-serif;font-size:clamp(2rem,6vw,3.5rem);font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:.8rem;color:var(--text-primary);transition:color 0.3s ease}
+.dl-title span{background:linear-gradient(130deg,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+.light-theme .dl-title span {
+  background: linear-gradient(130deg,#0088aa,#8844cc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dl-desc{font-size:.92rem;color:var(--text-secondary);font-weight:300;line-height:1.8;max-width:560px;transition:color 0.3s ease}
+
+.dl-group{margin-bottom:2.5rem}
+.dl-group-label{
+  font-size:.68rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--text-muted);margin-bottom:.9rem;
+  display:flex;align-items:center;gap:.6rem;
+  transition: color 0.3s ease;
+}
+.dl-group-label::after{content:'';flex:1;height:1px;background:var(--border-light);transition:background 0.3s ease}
+
+.dl-list{display:flex;flex-direction:column;gap:.5rem}
+.dl-item{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg-card);
+  border:1px solid var(--border-medium);
+  border-radius:12px;padding:1rem 1.3rem;
+  cursor:pointer;transition:all .22s;
+  text-decoration:none;
+}
+.dl-item:hover{border-color:rgba(0,229,255,.3);background:var(--bg-hover);transform:translateX(4px)}
+
+.light-theme .dl-item:hover {
+  border-color: rgba(0,150,200,.3);
+  background: rgba(0,150,200,.08);
+}
+
+.dl-item-left{display:flex;align-items:center;gap:1rem}
+.dl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+.dl-item-name{font-family:'Syne',sans-serif;font-size:.97rem;font-weight:800;color:#d0d0e8;transition:color 0.3s ease}
+
+.light-theme .dl-item-name {
+  color: var(--text-primary);
+}
+
+.dl-item-kind{font-size:.72rem;color:var(--text-muted);letter-spacing:.07em;text-transform:uppercase;margin-top:.1rem;transition:color 0.3s ease}
+.dl-item-right{display:flex;align-items:center;gap:.7rem}
+.dl-badge{
+  font-size:.65rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;
+  padding:.2rem .65rem;border-radius:100px;
+}
+.dl-badge.rare{background:rgba(168,85,247,.1);color:rgba(168,85,247,.8);border:1px solid rgba(168,85,247,.15)}
+.dl-badge.common{background:rgba(0,229,255,.08);color:rgba(0,229,255,.7);border:1px solid rgba(0,229,255,.12)}
+.dl-badge.vr{background:rgba(255,85,51,.08);color:rgba(255,85,51,.7);border:1px solid rgba(255,85,51,.12)}
+
+.light-theme .dl-badge.rare {
+  background: rgba(150,100,200,.1);
+  color: rgba(150,100,200,.85);
+  border-color: rgba(150,100,200,.2);
+}
+
+.light-theme .dl-badge.common {
+  background: rgba(0,150,200,.1);
+  color: rgba(0,150,200,.8);
+  border-color: rgba(0,150,200,.2);
+}
+
+.light-theme .dl-badge.vr {
+  background: rgba(220,80,50,.1);
+  color: rgba(220,80,50,.85);
+  border-color: rgba(220,80,50,.2);
+}
+
+.dl-arr{color:var(--text-muted);transition:color 0.3s ease}
+.dl-item:hover .dl-arr{color:var(--accent-cyan)}
+
+/* ═══ DISEASE DETAIL PAGE ═══ */
+#ddetail .dd-wrap{
+  max-width:900px;margin:0 auto;padding:2.5rem 2rem 6rem;
+}
+.back-btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  background:none;border:none;color:var(--text-nav);
+  font-family:'Instrument Sans',sans-serif;font-size:.82rem;
+  cursor:pointer;margin-bottom:2rem;transition:color .2s;padding:0;
+}
+.back-btn:hover{color:var(--text-primary)}
+
+.dd-header{margin-bottom:2.5rem}
+.dd-tag{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.25rem .8rem;border-radius:100px;
+  font-size:.67rem;font-weight:500;letter-spacing:.1em;text-transform:uppercase;
+  margin-bottom:.9rem;
+}
+.dd-name{font-family:'Syne',sans-serif;font-size:clamp(2rem,6vw,3.2rem);font-weight:800;letter-spacing:-.04em;line-height:1;margin-bottom:.7rem;color:var(--text-primary);transition:color 0.3s ease}
+.dd-tagline{font-size:1rem;color:var(--text-secondary);font-weight:300;line-height:1.7;max-width:560px;transition:color 0.3s ease}
+
+.dd-info-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem;
+}
+@media(max-width:580px){.dd-info-grid{grid-template-columns:1fr 1fr}}
+.dd-info-card{
+  background:var(--bg-card);border:1px solid var(--border-medium);
+  border-radius:12px;padding:1rem 1.1rem;
+  transition: all 0.3s ease;
+}
+.dd-info-label{font-size:.66rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.3rem;transition:color 0.3s ease}
+.dd-info-val{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text-primary);transition:color 0.3s ease}
+
+.dd-desc-block{
+  background:var(--bg-tertiary);border:1px solid var(--border-light);
+  border-radius:14px;padding:1.5rem 1.7rem;margin-bottom:2rem;
+  transition: all 0.3s ease;
+}
+.dd-desc-block h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text-primary);margin-bottom:.7rem;display:flex;align-items:center;gap:.5rem;transition:color 0.3s ease}
+.dd-desc-block p{font-size:.87rem;color:var(--text-secondary);line-height:1.85;font-weight:300;transition:color 0.3s ease}
+.dd-desc-block ul{padding-left:1.2rem;margin-top:.6rem}
+.dd-desc-block ul li{font-size:.85rem;color:var(--text-secondary);line-height:1.8;font-weight:300;margin-bottom:.2rem;transition:color 0.3s ease}
+</style>
+</head>
+<body>
+
+<div class="orb o1"></div>
+<div class="orb o2"></div>
+<div class="orb o3"></div>
+<div class="spectrum"></div>
+
+<!-- ══════════ HOME PAGE ══════════ -->
+<div class="page" id="home">
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('home')">Home</button>
+      <div id="nav-auth-home" class="nav-auth-slot"></div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag"><span class="hero-dot"></span>Colour Vision Science</div>
+
+    <h1 class="hero-title">
+      <span class="t1">RETINEX</span>
+      <span class="t2">PRO</span>
+    </h1>
+
+    <p class="hero-desc">
+      A clinical-grade platform to <strong>detect, understand and test</strong> colour vision deficiencies. From comprehensive diagnostics to real-time analysis — see the world through every lens.
+    </p>
+
+    <div class="hero-actions">
+      <button class="ha-primary" onclick="showPage('dlist')">
+        Explore Disease Types
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+      <button class="ha-secondary" onclick="showPage('full-assessment')">
+        Take Full Assessment
+      </button>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="stat-n">8%</div><div class="stat-l">Males Affected</div></div>
+      <div class="stat"><div class="stat-n">7</div><div class="stat-l">Disease Types</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Test Methods</div></div>
+      <div class="stat"><div class="stat-n">300M+</div><div class="stat-l">People Worldwide</div></div>
+    </div>
+  </section>
+
+  <!-- ABOUT CARDS -->
+  <div class="sec-div">
+    <div style="max-width:900px;margin:0 auto 2rem">
+      <div class="sec-label">What We Offer</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;letter-spacing:-.03em;color:var(--text-primary);margin-bottom:.5rem;transition:color 0.3s ease">Comprehensive Colour Vision Tools</h2>
+      <p style="font-size:.88rem;color:var(--text-tertiary);font-weight:300;line-height:1.8;max-width:500px;transition:color 0.3s ease">Built for clinicians, researchers, and curious minds — Retinex Pro provides science-backed diagnostics in an intuitive interface.</p>
+    </div>
+  </div>
+
+  <div class="about-grid">
+    <div class="about-card" onclick="showPage('ishihara-test')" style="cursor:pointer;transition:opacity 0.2s">
+      <div class="ac-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <div class="ac-title">Ishihara Plate Tests</div>
+      <div class="ac-desc">Internationally validated pseudoisochromatic plates adapted for each specific colour vision deficiency.</div>
+    </div>
+    <div class="about-card" onclick="showPage('contrast-test')" style="cursor:pointer;transition:opacity 0.2s">
+      <div class="ac-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <div class="ac-title">Contrast Simulator</div>
+      <div class="ac-desc">Preview any colour combination through the visual perspective of each deficiency type with WCAG ratios.</div>
+    </div>
+    <div class="about-card" onclick="showPage('reports')" style="cursor:pointer;transition:opacity 0.2s">
+      <div class="ac-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="ac-title">Personalised Reports</div>
+      <div class="ac-desc">View your test history, results, and detected conditions across all assessments taken.</div>
+    </div>
+    <div class="about-card" onclick="showPage('eye-diseases')" style="cursor:pointer;transition:opacity 0.2s">
+      <div class="ac-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="ac-title">General Eye Diseases</div>
+      <div class="ac-desc">15+ conditions including refractive errors, structural diseases, inflammation, and degenerative disorders with clinical assessments.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+<!-- ══════════ DISEASE LIST PAGE ══════════ -->
+<div class="page gone" id="dlist">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('home')">Home</button>
+      <div id="nav-auth-dlist" class="nav-auth-slot"></div>
+    </div>
+  </nav>
+
+  <div class="dl-wrap">
+    <div class="dl-hero">
+      <div class="sec-label">Colour Vision Deficiencies</div>
+      <h1 class="dl-title">Disease <span>Types</span></h1>
+      <p class="dl-desc">Seven distinct colour vision deficiencies, ranging from mild anomalies to complete absence of colour perception. Select any condition to explore its profile and run targeted tests.</p>
+    </div>
+
+    <!-- Red-Green Group -->
+    <div class="dl-group">
+      <div class="dl-group-label">Red-Green Deficiencies (Green Channel)</div>
+      <div class="dl-list">
+        <div class="dl-item" onclick="openDisease('deuteranomaly')">
+          <div class="dl-item-left">
+            <div class="dl-dot" style="background:#6ee86e;box-shadow:0 0 8px #6ee86e55"></div>
+            <div class="dl-item-info">
+              <div class="dl-item-name">Deuteranomaly</div>
+              <div class="dl-item-kind">Anomalous Trichromacy · Green-Weak</div>
+            </div>
+          </div>
+          <div class="dl-item-right">
+            <span class="dl-badge common">Most Common</span>
+            <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+        <div class="dl-item" onclick="openDisease('protanomaly')">
+          <div class="dl-item-left">
+            <div class="dl-dot" style="background:#e86e6e;box-shadow:0 0 8px #e86e6e55"></div>
+            <div class="dl-item-info">
+              <div class="dl-item-name">Protanomaly</div>
+              <div class="dl-item-kind">Anomalous Trichromacy · Red-Weak</div>
+            </div>
+          </div>
+          <div class="dl-item-right">
+            <span class="dl-badge common">Common</span>
+            <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dichromacy Red-Green -->
+    <div class="dl-group">
+      <div class="dl-group-label">Red-Green Deficiencies (Dichromacy)</div>
+      <div class="dl-list">
+        <div class="dl-item" onclick="openDisease('deuteranopia')">
+          <div class="dl-item-left">
+            <div class="dl-dot" style="background:#40e870;box-shadow:0 0 8px #40e87055"></div>
+            <div class="dl-item-info">
+              <div class="dl-item-name">Deuteranopia</div>
+              <div class="dl-item-kind">Dichromacy · Green-Blind</div>
+            </div>
+          </div>
+          <div class="dl-item-right">
+            <span class="dl-badge common">Common</span>
+            <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+        <div class="dl-item" onclick="openDisease('protanopia')">
+          <div class="dl-item-left">
+            <div class="dl-dot" style="background:#e84040;box-shadow:0 0 8px #e8404055"></div>
+            <div class="dl-item-info">
+              <div class="dl-item-name">Protanopia</div>
+              <div class="dl-item-kind">Dichromacy · Red-Blind</div>
+            </div>
+          </div>
+          <div class="dl-item-right">
+            <span class="dl-badge common">Common</span>
+            <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blue-Yellow -->
+    <div class="dl-group">
+      <div class="dl-group-label">Blue-Yellow Deficiencies</div>
+      <div class="dl-list">
+        <div class="dl-item" onclick="openDisease('tritanopia')">
+          <div class="dl-item-left">
+            <div class="dl-dot" style="background:#4070e8;box-shadow:0 0 8px #4070e855"></div>
+            <div class="dl-item-info">
+              <div class="dl-item-name">Tritanopia</div>
+              <div class="dl-item-kind">Dichromacy · Blue-Blind</div>
+            </div>
+          </div>
+          <div class="dl-item-right">
+            <span class="dl-badge rare">Rare</span>
+            <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+        <div class="dl-item" onclick="openDisease('tritanomaly')">
+          <div class="dl-item-left">
+            <div class="dl-dot" style="background:#7040e8;box-shadow:0 0 8px #7040e855"></div>
+            <div class="dl-item-info">
+              <div class="dl-item-name">Tritanomaly</div>
+              <div class="dl-item-kind">Anomalous Trichromacy · Blue-Weak</div>
+            </div>
+          </div>
+          <div class="dl-item-right">
+            <span class="dl-badge rare">Rare</span>
+            <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monochromacy -->
+    <div class="dl-group">
+      <div class="dl-group-label">Complete Colour Vision Loss</div>
+      <div class="dl-list">
+        <div class="dl-item" onclick="openDisease('achromatopsia')">
+          <div class="dl-item-left">
+            <div class="dl-dot" style="background:#888;box-shadow:0 0 8px #88888855"></div>
+            <div class="dl-item-info">
+              <div class="dl-item-name">Achromatopsia</div>
+              <div class="dl-item-kind">Monochromacy · Total Colour Blindness</div>
+            </div>
+          </div>
+          <div class="dl-item-right">
+            <span class="dl-badge vr">Very Rare</span>
+            <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+<!-- ══════════ DISEASE DETAIL PAGE ══════════ -->
+<div class="page gone" id="ddetail">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('dlist')">All Diseases</button>
+    </div>
+  </nav>
+
+  <div class="dd-wrap" id="ddContent">
+    <!-- filled dynamically -->
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+<!-- ══════════ EYE DISEASES LIBRARY PAGE ══════════ -->
+<div class="page gone" id="eye-diseases">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('home')">Home</button>
+    </div>
+  </nav>
+
+  <div style="max-width:900px;margin:0 auto;padding:3rem 2rem 0">
+    <div class="sec-label">Eye Health & Vision</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;letter-spacing:-.03em;color:var(--text-primary);margin-bottom:.8rem;transition:color 0.3s ease">Comprehensive Eye <span style="background:linear-gradient(130deg,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Condition Library</span></h2>
+    <p style="font-size:.92rem;color:var(--text-secondary);font-weight:300;line-height:1.8;max-width:600px;transition:color 0.3s ease">Explore detailed profiles of 15+ eye conditions, from common refractive errors to rare degenerative diseases. Each includes diagnostic tests and clinical information.</p>
+  </div>
+
+  <!-- REFRACTIVE ERRORS GROUP -->
+  <div style="max-width:900px;margin:0 auto;padding:0 2rem">
+    <div class="dl-group-label" style="margin-bottom:1.2rem;margin-top:2rem">Refractive Errors</div>
+    <div class="dl-list" id="refractive-list"></div>
+  </div>
+
+  <!-- STRUCTURAL & RETINAL GROUP -->
+  <div style="max-width:900px;margin:0 auto;padding:0 2rem">
+    <div class="dl-group-label" style="margin-bottom:1.2rem;margin-top:2rem">Structural & Retinal Disorders</div>
+    <div class="dl-list" id="structural-list"></div>
+  </div>
+
+  <!-- INFLAMMATION & DEGENERATIVE GROUP -->
+  <div style="max-width:900px;margin:0 auto;padding:0 2rem">
+    <div class="dl-group-label" style="margin-bottom:1.2rem;margin-top:2rem">Inflammation & Degenerative Diseases</div>
+    <div class="dl-list" id="inflammation-list"></div>
+  </div>
+
+  <!-- OTHER CONDITIONS GROUP -->
+  <div style="max-width:900px;margin:0 auto;padding:0 2rem 6rem">
+    <div class="dl-group-label" style="margin-bottom:1.2rem;margin-top:2rem">Other Conditions</div>
+    <div class="dl-list" id="other-list"></div>
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+<!-- ══════════ ISHIHARA TEST PAGE ══════════ -->
+<div class="page gone" id="ishihara-test">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('home')">Home</button>
+    </div>
+  </nav>
+
+  <div style="max-width:760px;margin:0 auto;padding:3rem 2rem 6rem">
+    <h1 style="font-family:'Syne',sans-serif;font-size:clamp(2rem,6vw,3.2rem);font-weight:800;letter-spacing:-.04em;color:var(--text-primary);margin-bottom:1rem;transition:color 0.3s ease">Ishihara <span style="background:linear-gradient(130deg,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Colour Plate Test</span></h1>
+    <p style="font-size:.92rem;color:var(--text-secondary);font-weight:300;line-height:1.8;max-width:600px;margin-bottom:2rem;transition:color 0.3s ease">Internationally validated pseudoisochromatic plates to detect colour vision deficiencies. Look at each plate and select the number or pattern you see.</p>
+
+    <div id="ishihara-container" style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:14px;padding:2rem;margin-bottom:2rem">
+      <!-- Progress -->
+      <div style="margin-bottom:1.5rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+          <p style="font-size:.85rem;color:var(--text-muted)"><strong style="color:var(--text-primary)">Plate <span id="plate-num">1</span></strong> of <span id="plate-total">20</span></p>
+          <span id="plate-type-badge" style="font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.2rem .7rem;border-radius:100px;background:rgba(0,229,255,.08);color:rgba(0,229,255,.8);border:1px solid rgba(0,229,255,.15)">Control</span>
+        </div>
+        <div style="background:var(--bg-tertiary);height:4px;border-radius:4px;overflow:hidden">
+          <div id="plate-progress-bar" style="background:linear-gradient(to right,#00e5ff,#a855f7);height:100%;width:5%;transition:width 0.3s ease"></div>
+        </div>
+      </div>
+
+      <!-- Plate SVG display -->
+      <div style="display:flex;justify-content:center;margin-bottom:1.5rem">
+        <div id="plate-display" style="width:320px;height:320px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 8px rgba(255,255,255,.04),0 8px 40px rgba(0,0,0,.4);position:relative;flex-shrink:0"></div>
+      </div>
+
+      <p id="plate-instruction" style="text-align:center;font-size:.88rem;color:var(--text-secondary);margin-bottom:1.5rem;font-weight:300">What number do you see in this plate?</p>
+
+      <!-- Answer buttons -->
+      <div style="display:flex;gap:.7rem;flex-wrap:wrap;justify-content:center;margin-bottom:2rem" id="answer-buttons"></div>
+
+      <!-- Nav buttons -->
+      <div style="display:flex;gap:1rem;justify-content:center">
+        <button class="ha-secondary" id="prev-plate-btn" onclick="prevIshiharaPlate()" style="display:none">← Previous</button>
+        <button class="ha-primary" id="next-btn" onclick="nextIshiharaPlate()">Next →</button>
+      </div>
+    </div>
+
+    <div id="ishihara-result" style="display:none;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:14px;padding:2rem;margin-bottom:2rem">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text-primary);margin-bottom:1rem">Your Test Results</h2>
+      <div id="result-content"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+<!-- ══════════ CONTRAST SIMULATOR PAGE ══════════ -->
+<div class="page gone" id="contrast-test">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('home')">Home</button>
+    </div>
+  </nav>
+
+  <div style="max-width:900px;margin:0 auto;padding:3rem 2rem 6rem">
+    <div style="font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem">COLOUR ACCESSIBILITY TOOLS</div>
+
+    <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:14px;padding:2.2rem;margin-bottom:2rem">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8.01"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+        <h2 style="font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;color:var(--text-primary)">Color Contrast Checker</h2>
+      </div>
+      <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:2rem;line-height:1.7">Check if your colour combination meets WCAG accessibility standards. 4.5:1 for AA, 7:1 for AAA compliance.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start">
+        <!-- LEFT: Inputs -->
+        <div>
+          <!-- Foreground -->
+          <div style="margin-bottom:1.5rem">
+            <label style="display:block;font-size:.82rem;color:var(--text-secondary);margin-bottom:.7rem">Foreground Color (Text)</label>
+            <div style="display:flex;align-items:center;gap:.8rem">
+              <div id="fg-swatch" onclick="document.getElementById('text-color').click()" style="width:48px;height:48px;border-radius:8px;border:1px solid var(--border-strong);cursor:pointer;background:#ffffff;flex-shrink:0;transition:background .2s"></div>
+              <div style="position:relative;flex:1">
+                <input type="text" id="fg-hex-input" value="#ffffff" oninput="onHexInput('fg')" style="width:100%;padding:.7rem 1rem;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg-tertiary);color:var(--text-primary);font-size:.92rem;font-family:'Instrument Sans',sans-serif;outline:none"/>
+                <input type="color" id="text-color" value="#ffffff" onchange="syncFromPicker('fg')" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Background -->
+          <div style="margin-bottom:2rem">
+            <label style="display:block;font-size:.82rem;color:var(--text-secondary);margin-bottom:.7rem">Background Color</label>
+            <div style="display:flex;align-items:center;gap:.8rem">
+              <div id="bg-swatch" onclick="document.getElementById('bg-color').click()" style="width:48px;height:48px;border-radius:8px;border:1px solid var(--border-strong);cursor:pointer;background:#07070f;flex-shrink:0;transition:background .2s"></div>
+              <div style="position:relative;flex:1">
+                <input type="text" id="bg-hex-input" value="#07070f" oninput="onHexInput('bg')" style="width:100%;padding:.7rem 1rem;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg-tertiary);color:var(--text-primary);font-size:.92rem;font-family:'Instrument Sans',sans-serif;outline:none"/>
+                <input type="color" id="bg-color" value="#07070f" onchange="syncFromPicker('bg')" style="position:absolute;opacity:0;width:0;height:0;pointer-events:none"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contrast Ratio -->
+          <div>
+            <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:.4rem">Contrast Ratio:</p>
+            <div id="contrast-ratio" style="font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;color:var(--text-primary);letter-spacing:-.02em;line-height:1">20.07:1</div>
+            <div style="margin-top:1rem;display:flex;flex-direction:column;gap:.5rem">
+              <div style="display:flex;align-items:center;gap:.55rem">
+                <div id="aa-dot" style="width:14px;height:14px;border-radius:50%;background:#22c55e;flex-shrink:0"></div>
+                <span id="aa-text" style="font-size:.83rem;color:var(--text-secondary)">WCAG AA (4.5:1 minimum)</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:.55rem">
+                <div id="aaa-dot" style="width:14px;height:14px;border-radius:50%;background:#22c55e;flex-shrink:0"></div>
+                <span id="aaa-text" style="font-size:.83rem;color:var(--text-secondary)">WCAG AAA (7:1 minimum)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Preview -->
+        <div>
+          <p style="font-size:.82rem;color:var(--text-secondary);margin-bottom:.7rem">Preview:</p>
+          <div id="contrast-preview-card" style="border:1px solid var(--border-medium);border-radius:10px;padding:1.5rem;background:#07070f">
+            <h3 style="font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;margin-bottom:.8rem;color:#ffffff">Sample Heading</h3>
+            <p style="font-size:.85rem;line-height:1.75;color:#ffffff;margin-bottom:1.2rem">This is sample paragraph text to demonstrate how the color combination looks in practice. The contrast should be sufficient for comfortable reading.</p>
+            <button id="contrast-preview-btn" style="padding:.55rem 1.2rem;border-radius:7px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;border:2px solid #ffffff;background:transparent;color:#ffffff">Sample Button</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deficiency Simulator Section -->
+    <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:14px;padding:2rem;margin-bottom:2rem">
+      <h3 style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text-primary);margin-bottom:.5rem">Colour Vision Deficiency Simulator</h3>
+      <p style="font-size:.83rem;color:var(--text-secondary);margin-bottom:1.2rem">Preview how your colour combination appears through different types of colour blindness.</p>
+      <div style="margin-bottom:1.2rem">
+        <select id="deficiency-select" onchange="updateContrastSimulation()" style="width:100%;padding:.75rem 1rem;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg-tertiary);color:var(--text-primary);font-size:.9rem;font-family:'Instrument Sans',sans-serif;outline:none">
+          <option value="normal">Normal Vision</option>
+          <option value="deuteranomaly">Deuteranomaly (Green-Weak)</option>
+          <option value="protanomaly">Protanomaly (Red-Weak)</option>
+          <option value="deuteranopia">Deuteranopia (Green-Blind)</option>
+          <option value="protanopia">Protanopia (Red-Blind)</option>
+          <option value="tritanopia">Tritanopia (Blue-Blind)</option>
+          <option value="achromatopsia">Achromatopsia (Monochromacy)</option>
+        </select>
+      </div>
+      <div id="deficiency-preview-card" style="border:1px solid var(--border-medium);border-radius:10px;padding:1.5rem">
+        <h4 id="def-preview-heading" style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:.6rem">Simulated Preview</h4>
+        <p id="def-preview-body" style="font-size:.85rem;line-height:1.7;margin-bottom:.8rem">This shows how the chosen colours appear to someone with the selected colour vision deficiency.</p>
+        <div id="def-contrast-info" style="font-size:.78rem;opacity:.7;margin-top:.5rem">Contrast Ratio: <strong id="def-contrast-ratio">—</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+<!-- ══════════ FULL ASSESSMENT PAGE ══════════ -->
+<div class="page gone" id="full-assessment">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('home')">Home</button>
+    </div>
+  </nav>
+
+  <div style="max-width:900px;margin:0 auto;padding:3rem 2rem 6rem">
+    <h1 style="font-family:'Syne',sans-serif;font-size:clamp(2rem,6vw,3.2rem);font-weight:800;letter-spacing:-.04em;color:var(--text-primary);margin-bottom:1rem;transition:color 0.3s ease">Full Colour <span style="background:linear-gradient(130deg,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Vision Assessment</span></h1>
+    <p style="font-size:.92rem;color:var(--text-secondary);font-weight:300;line-height:1.8;max-width:600px;margin-bottom:2rem;transition:color 0.3s ease">Complete this comprehensive assessment to identify any colour vision deficiencies. Answer each question based on what you see.</p>
+
+    <div id="assessment-container" style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:14px;padding:2rem;margin-bottom:2rem">
+      <div style="margin-bottom:1rem">
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:1rem"><strong>Question <span id="current-q">1</span> of <span id="total-q">10</span></strong></p>
+        <div style="background:var(--bg-tertiary);height:4px;border-radius:4px;overflow:hidden">
+          <div id="progress-bar" style="background:linear-gradient(to right,#00e5ff,#a855f7);height:100%;width:10%;transition:width 0.3s ease"></div>
+        </div>
+      </div>
+
+      <h2 id="question-text" style="font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:800;color:var(--text-primary);margin:2rem 0 1.5rem">Question 1</h2>
+
+      <div id="question-content" style="margin:2rem 0"></div>
+
+      <div style="display:flex;gap:1rem;justify-content:center;margin-top:2rem">
+        <button class="ha-secondary" id="prev-assess" onclick="previousAssessmentQuestion()" style="display:none">← Previous</button>
+        <button class="ha-primary" id="next-assess" onclick="nextAssessmentQuestion()">Next →</button>
+      </div>
+    </div>
+
+    <div id="assessment-result" style="display:none;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:14px;padding:2rem">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--text-primary);margin-bottom:1rem">Assessment Results</h2>
+      <div id="result-assessment-content"></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+<!-- ══════════ PERSONALISED REPORTS PAGE ══════════ -->
+<div class="page gone" id="reports">
+  <nav class="nav">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-eye">
+        <svg width="14" height="10" viewBox="0 0 32 22" fill="none">
+          <path d="M1 11C1 11 6.5 1 16 1C25.5 1 31 11 31 11C31 11 25.5 21 16 21C6.5 21 1 11 1 11Z" stroke="#00e5ff" stroke-width="1.8" fill="none"/>
+          <circle cx="16" cy="11" r="5" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="1.8"/>
+          <circle cx="16" cy="11" r="2.5" fill="#00e5ff"/>
+        </svg>
+      </div>
+      <span class="nav-name">RETINEX<em>PRO</em></span>
+    </div>
+    <div class="nav-right">
+      <button class="theme-switcher" id="themeBtn" onclick="toggleTheme()">Switch To Light</button>
+      <button class="nav-btn ghost" onclick="showPage('home')">Home</button>
+    </div>
+  </nav>
+
+  <div style="max-width:900px;margin:0 auto;padding:3rem 2rem 6rem">
+    <div class="sec-label">Your Activity</div>
+    <h1 style="font-family:'Syne',sans-serif;font-size:clamp(2rem,6vw,3rem);font-weight:800;letter-spacing:-.04em;color:var(--text-primary);margin-bottom:.7rem">Personalised <span style="background:linear-gradient(130deg,#00e5ff,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Reports</span></h1>
+    <p style="font-size:.9rem;color:var(--text-secondary);font-weight:300;line-height:1.8;max-width:580px;margin-bottom:2.5rem">A summary of all tests you have taken, how many times each was attempted, and any detected conditions.</p>
+
+    <!-- Summary stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2.5rem" id="report-stats-grid">
+      <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:12px;padding:1.2rem 1.4rem">
+        <div style="font-size:.68rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem">Tests Taken</div>
+        <div id="rpt-total" style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--text-primary)">0</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:12px;padding:1.2rem 1.4rem">
+        <div style="font-size:.68rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem">Conditions Detected</div>
+        <div id="rpt-conditions" style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--text-primary)">0</div>
+      </div>
+      <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:12px;padding:1.2rem 1.4rem">
+        <div style="font-size:.68rem;color:var(--text-muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem">Last Test</div>
+        <div id="rpt-last" style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;color:var(--text-primary);line-height:1.3;margin-top:.2rem">—</div>
+      </div>
+    </div>
+
+    <!-- Test history table -->
+    <div id="reports-empty" style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:14px;padding:3rem;text-align:center;display:none">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:1rem"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <p style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text-primary);margin-bottom:.5rem">No Tests Taken Yet</p>
+      <p style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1.5rem">Complete the Ishihara Test or Full Assessment to see your results here.</p>
+      <button class="ha-primary" onclick="showPage('ishihara-test')">Take Ishihara Test</button>
+    </div>
+
+    <div id="reports-list" style="display:none">
+      <div style="background:var(--bg-card);border:1px solid var(--border-medium);border-radius:14px;overflow:hidden">
+        <div style="padding:1.2rem 1.5rem;border-bottom:1px solid var(--border-light);display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:1rem">
+          <span style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Test Name</span>
+          <span style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Times Taken</span>
+          <span style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Last Date</span>
+          <span style="font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)">Condition Detected</span>
+        </div>
+        <div id="reports-rows"></div>
+      </div>
+    </div>
+
+    <!-- Recent entries timeline -->
+    <div id="reports-timeline" style="margin-top:2rem;display:none">
+      <div style="font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem">Recent Entries</div>
+      <div id="timeline-list"></div>
+    </div>
+
+    <div style="margin-top:2rem;display:flex;gap:.8rem;flex-wrap:wrap" id="report-actions">
+      <button class="ha-primary" onclick="showPage('ishihara-test')">Take Ishihara Test</button>
+      <button class="ha-secondary" onclick="showPage('full-assessment')">Full Assessment</button>
+      <button class="ha-secondary" onclick="clearReports()" style="border-color:rgba(220,50,50,.3);color:#dc3232">Clear History</button>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span class="fdot"></span>
+    <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+    <span class="fdot"></span>
+  </div>
+</div>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   AUTH SYSTEM
+═══════════════════════════════════════════════════════ */
+
+function getLoggedInUser() {
+  try { return localStorage.getItem('retinex_user') || null; } catch(e) { return null; }
+}
+
+function doLogout() {
+  // Close dropdown immediately
+  document.querySelectorAll('.profile-menu').forEach(m => m.classList.remove('visible'));
+  document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('open'));
+  fetch('/api/logout', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        window.location.href = data.redirect;
+      }
+    })
+    .catch(() => {
+      window.location.href = '/';
+    });
+}
+
+function toggleProfileMenu(btn) {
+  const menu = btn.nextElementSibling;
+  const isOpen = menu.classList.contains('visible');
+  document.querySelectorAll('.profile-menu').forEach(m => m.classList.remove('visible'));
+  document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('open'));
+  if (!isOpen) {
+    menu.classList.add('visible');
+    btn.classList.add('open');
+  }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.profile-dropdown-wrap')) {
+    document.querySelectorAll('.profile-menu').forEach(m => m.classList.remove('visible'));
+    document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('open'));
+  }
+});
+
+function buildProfileHTML(user) {
+  const initials = (user.split('@')[0] || 'U').slice(0, 2).toUpperCase();
+  return `<div class="profile-dropdown-wrap">
+    <button class="profile-btn" onclick="toggleProfileMenu(this)">
+      <div class="p-avatar">${initials}</div>
+      My Profile
+      <svg class="p-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="profile-menu">
+      <div class="profile-menu-header">
+        <div class="profile-menu-id">Logged in as</div>
+        <div class="profile-menu-email">${user}</div>
+      </div>
+      <button class="profile-menu-logout" onclick="doLogout()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderAuthSlots() {
+  const user = getLoggedInUser() || 'User';
+  document.querySelectorAll('.nav-auth-slot').forEach(slot => {
+    slot.innerHTML = buildProfileHTML(user);
+  });
+}
+/* ═══════════════════════════════════════════════════════
+   THEME MANAGEMENT
+═══════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-theme');
+  const themeBtns = document.querySelectorAll('#themeBtn');
+  themeBtns.forEach(btn => btn.innerText = isLight ? "Switch to Dark" : "Switch to Light");
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+}
+
+// Load saved theme preference
+document.addEventListener('DOMContentLoaded', function(){
+  const saved = localStorage.getItem('theme');
+  if(saved === 'light'){
+    document.body.classList.add('light-theme');
+    const themeBtns = document.querySelectorAll('#themeBtn');
+    themeBtns.forEach(btn => btn.innerText = "Switch to Dark");
+  }
+});
+
+/* ═══════════════════════════════════════════════════════
+   DISEASE DATA
+═══════════════════════════════════════════════════════ */
+const DISEASES = {
+  deuteranomaly:{
+    name:'Deuteranomaly',
+    tagline:'The most common form of colour vision deficiency — a shift in green cone sensitivity.',
+    colour:'#6ee86e',
+    kind:'Anomalous Trichromacy',
+    channel:'Green-Weak',
+    prevalence:'5% of males',
+    inheritance:'X-linked',
+    severity:'Mild–Moderate',
+    description:`Deuteranomaly is caused by a shift in the spectral sensitivity of the M (medium-wavelength, "green") cones toward the sensitivity of L (red) cones. All three cone types are still present and functioning, making it a form of anomalous trichromacy. Affected individuals retain some ability to distinguish colours but confuse certain greens, yellows, oranges, and reds.`,
+    symptoms:[
+      'Difficulty distinguishing red from green shades',
+      'Confusion between green, yellow, and orange',
+      'Reduced ability to differentiate olive, khaki, and brown tones',
+      'Normal visual acuity — only colour discrimination is affected',
+    ],
+  },
+  protanomaly:{
+    name:'Protanomaly',
+    tagline:'A weakened sensitivity in red cones causes difficulty distinguishing reds and greens.',
+    colour:'#e86e6e',
+    kind:'Anomalous Trichromacy',
+    channel:'Red-Weak',
+    prevalence:'1% of males',
+    inheritance:'X-linked',
+    severity:'Mild–Moderate',
+    description:`Protanomaly results from an L (long-wavelength, "red") cone whose peak sensitivity is shifted toward shorter wavelengths. Red light appears dimmer than normal, and the full spectrum from red through green can be compressed. It is less common than deuteranomaly but causes similar — and in some cases more pronounced — red-green confusion.`,
+    symptoms:[
+      'Red appears darker and less vibrant than normal',
+      'Confusion between red, orange, yellow, and brown',
+      'Green-yellow hues may appear similar to yellow',
+      'Difficulty reading colour-coded maps or charts',
+    ],
+  },
+  deuteranopia:{
+    name:'Deuteranopia',
+    tagline:'Complete absence of green-sensitive cones leads to significant red-green confusion.',
+    colour:'#40e870',
+    kind:'Dichromacy',
+    channel:'Green-Blind',
+    prevalence:'1.2% of males',
+    inheritance:'X-linked',
+    severity:'Moderate–Severe',
+    description:`In deuteranopia the M cones (green-sensitive) are entirely absent or non-functional, leaving the individual with only two functional cone types — L (red) and S (blue). This dichromacy causes substantial inability to distinguish red and green hues, which appear as yellow-brown variants. It is the most prevalent form of dichromacy.`,
+    symptoms:[
+      'Red and green are virtually indistinguishable',
+      'The entire spectrum from red to green appears as shades of yellow or brown',
+      'Blue and yellow are perceived normally',
+      'Significant difficulty with traffic lights and safety signals',
+    ],
+  },
+  protanopia:{
+    name:'Protanopia',
+    tagline:'Total absence of red-sensitive cones; red appears dark and indistinct from green.',
+    colour:'#e84040',
+    kind:'Dichromacy',
+    channel:'Red-Blind',
+    prevalence:'1% of males',
+    inheritance:'X-linked',
+    severity:'Moderate–Severe',
+    description:`Protanopia is characterised by the complete absence of L cones (red-sensitive). The perceived spectrum is limited to two dimensions — blue-yellow — and all reds appear very dark, effectively vanishing against dark backgrounds. Red objects may appear nearly black, and greens and reds are confused as yellow tones.`,
+    symptoms:[
+      'Red appears very dark, near black',
+      'Red and green are confused as yellow or brown shades',
+      'Cannot distinguish traffic lights without position cues',
+      'Difficulty with any colour-coded safety or warning system',
+    ],
+  },
+  tritanopia:{
+    name:'Tritanopia',
+    tagline:'Absence of blue-sensitive cones creates a rare blue-yellow colour confusion.',
+    colour:'#4070e8',
+    kind:'Dichromacy',
+    channel:'Blue-Blind',
+    prevalence:'<0.01% of population',
+    inheritance:'Autosomal dominant',
+    severity:'Moderate–Severe',
+    description:`Tritanopia is caused by the complete absence or non-function of S (short-wavelength, "blue") cones. Unlike the common red-green deficiencies, tritanopia is not X-linked and affects males and females equally. Blue colours appear green, and yellow tones are confused with violet or grey. It is extremely rare.`,
+    symptoms:[
+      'Blue and green appear similar',
+      'Yellow and violet/pink are confused',
+      'The sky may appear green-tinted',
+      'Difficulty distinguishing blue from green in everyday objects',
+    ],
+  },
+  tritanomaly:{
+    name:'Tritanomaly',
+    tagline:'A rare shift in blue cone sensitivity causes mild blue-yellow discrimination difficulties.',
+    colour:'#7040e8',
+    kind:'Anomalous Trichromacy',
+    channel:'Blue-Weak',
+    prevalence:'<0.01% of population',
+    inheritance:'Autosomal dominant',
+    severity:'Mild',
+    description:`Tritanomaly results from an altered S cone whose peak sensitivity is shifted, reducing but not eliminating blue colour perception. All three cone classes remain present. Discrimination of blue from green, and yellow from violet, is impaired, but the defect is generally milder than tritanopia.`,
+    symptoms:[
+      'Blue and green hues appear similar',
+      'Yellow and orange may appear pinkish',
+      'Subtle difficulty distinguishing sky blue from grey',
+      'Colour naming errors for blue-green and yellow-violet pairs',
+    ],
+  },
+  achromatopsia:{
+    name:'Achromatopsia',
+    tagline:'Total absence of colour vision — the world is perceived entirely in greyscale.',
+    colour:'#888888',
+    kind:'Monochromacy',
+    channel:'All Cones Absent',
+    prevalence:'1 in 30,000',
+    inheritance:'Autosomal recessive',
+    severity:'Complete',
+    description:`Achromatopsia (complete achromatopsia or rod monochromacy) involves the complete absence of functional cone photoreceptors. Vision is mediated entirely by rods, which are sensitive only to light intensity, not wavelength. This means no colour is perceived at all — only shades of grey. In addition to colour blindness, affected individuals typically have very poor visual acuity, extreme light sensitivity (photophobia), and involuntary eye movements (nystagmus).`,
+    symptoms:[
+      'Complete absence of colour perception — world appears in greyscale',
+      'Reduced visual acuity (often 20/200 or worse)',
+      'Severe light sensitivity (photophobia)',
+      'Involuntary eye movements (nystagmus)',
+      'Better vision in dim conditions than bright light',
+    ],
+  },
+  myopia:{
+    name:'Myopia',
+    tagline:'Nearsightedness — distant objects appear blurry while close objects remain clear.',
+    colour:'#00d9ff',
+    kind:'Refractive Error',
+    channel:'Distance Vision Disorder',
+    prevalence:'30% of population',
+    inheritance:'Genetic & Environmental',
+    severity:'Mild–Moderate',
+    description:`Myopia (nearsightedness) occurs when the cornea or lens is too curved, or the eye is too long, causing light rays to focus in front of the retina. Distant objects appear blurry, but near vision remains sharp. It is the most common refractive error and often develops during childhood.`,
+    symptoms:[
+      'Distant objects appear blurry',
+      'Difficulty reading distant signs or whiteboards',
+      'Squinting to see far away',
+      'Eye strain from focusing on distance',
+      'Frequent headaches from visual effort',
+    ],
+    test:'Snells Chart',
+  },
+  hypermetropia:{
+    name:'Hypermetropia',
+    tagline:'Farsightedness — close objects appear blurry while distance vision is clear.',
+    colour:'#ff9500',
+    kind:'Refractive Error',
+    channel:'Near Vision Disorder',
+    prevalence:'35% of population',
+    inheritance:'Genetic',
+    severity:'Mild–Moderate',
+    description:`Hypermetropia (farsightedness) occurs when the eye is too short or the cornea is too flat, causing light rays to focus behind the retina. Close objects appear blurry, while distant objects may be clear. The eye must work harder to focus on near objects, often causing eye strain.`,
+    symptoms:[
+      'Difficulty focusing on close objects',
+      'Blurry near vision for reading and detail work',
+      'Eye strain and fatigue during reading',
+      'Headaches after focusing on near objects',
+      'May have clear distance vision',
+    ],
+    test:'Visual Acuity Test',
+  },
+  presbyopia:{
+    name:'Presbyopia',
+    tagline:'Age-related vision loss — inability to focus on near objects due to lens hardening.',
+    colour:'#a855f7',
+    kind:'Refractive Error',
+    channel:'Age-Related Near Vision',
+    prevalence:'100% after age 45',
+    inheritance:'Age-dependent',
+    severity:'Progressive',
+    description:`Presbyopia is age-related loss of accommodation, where the eye's lens loses elasticity and cannot change shape to focus on near objects. It typically begins around age 40-45 and progressively worsens. This is a natural part of aging affecting nearly all individuals.`,
+    symptoms:[
+      'Difficulty focusing on near objects',
+      'Blurry vision at normal reading distance',
+      'Need to hold reading material further away',
+      'Eye strain during detailed work',
+      'Headaches after reading or close work',
+    ],
+    test:'Near Vision Test',
+  },
+  astigmatism:{
+    name:'Astigmatism',
+    tagline:'Corneal irregularity — blurred or distorted vision at all distances.',
+    colour:'#f59e0b',
+    kind:'Refractive Error',
+    channel:'Corneal Curvature Defect',
+    prevalence:'35% of population',
+    inheritance:'Genetic',
+    severity:'Mild–Moderate',
+    description:`Astigmatism occurs when the cornea or lens has an irregular shape (more oblong than spherical), causing light rays to focus at multiple points. Vision is blurred or distorted at all distances. It can occur alone or alongside myopia or hypermetropia.`,
+    symptoms:[
+      'Blurry or distorted vision at all distances',
+      'Difficulty reading or seeing fine details',
+      'Eye strain and fatigue',
+      'Squinting to see clearly',
+      'Headaches from visual effort',
+    ],
+    test:'Astigmatism Dial Test',
+  },
+  amblyopia:{
+    name:'Amblyopia',
+    tagline:'Lazy eye — reduced vision in one eye due to poor development during childhood.',
+    colour:'#ec4899',
+    kind:'Structural Disorder',
+    channel:'Developmental Vision Loss',
+    prevalence:'2-3% of population',
+    inheritance:'Genetic predisposition',
+    severity:'Moderate',
+    description:`Amblyopia (lazy eye) develops when one eye receives blurry images or the brain favors one eye, preventing normal visual development in the other. Most common in children; early detection and treatment are crucial. Can result from strabismus, refractive errors, or image obstruction.`,
+    symptoms:[
+      'Reduced vision in one eye',
+      'Eye turning inward or outward (sometimes)',
+      'Poor depth perception',
+      'Difficulty with fine visual tasks',
+      'May go unnoticed until vision screening',
+    ],
+  },
+  strabismus:{
+    name:'Strabismus',
+    tagline:'Eye misalignment — eyes point in different directions, affecting depth perception.',
+    colour:'#06b6d4',
+    kind:'Structural Disorder',
+    channel:'Eye Alignment Disorder',
+    prevalence:'4% of children',
+    inheritance:'Genetic predisposition',
+    severity:'Moderate',
+    description:`Strabismus is a misalignment of the eyes where one or both eyes turn inward (esotropia), outward (exotropia), upward (hypertropia), or downward (hypotropia). It can be constant or intermittent, and often requires early intervention to prevent amblyopia and improve binocular vision.`,
+    symptoms:[
+      'Eyes pointing in different directions',
+      'Double vision (in some cases)',
+      'Poor depth perception',
+      'Eye strain and fatigue',
+      'Social or psychological concerns about appearance',
+    ],
+  },
+  glaucoma:{
+    name:'Glaucoma',
+    tagline:'Optic nerve damage — elevated intraocular pressure leading to progressive vision loss.',
+    colour:'#059669',
+    kind:'Degenerative Disease',
+    channel:'Optic Nerve Damage',
+    prevalence:'3% of population',
+    inheritance:'Genetic risk',
+    severity:'Severe (if untreated)',
+    description:`Glaucoma is characterized by progressive damage to the optic nerve, usually due to elevated intraocular pressure. It can develop slowly (open-angle) or rapidly (angle-closure). Often called the "silent thief of sight" because vision loss is typically gradual and painless until advanced stages.`,
+    symptoms:[
+      'Often no early symptoms (silent disease)',
+      'Gradual peripheral vision loss',
+      'Tunnel vision in advanced stages',
+      'In acute angle-closure: eye pain, halos around lights, sudden vision loss',
+      'Nausea and vomiting (in acute cases)',
+    ],
+  },
+  cataract:{
+    name:'Cataract',
+    tagline:'Lens clouding — progressive loss of lens transparency causing vision decline.',
+    colour:'#f97316',
+    kind:'Degenerative Disease',
+    channel:'Lens Opacity',
+    prevalence:'50% by age 80',
+    inheritance:'Genetic & age-related',
+    severity:'Progressive',
+    description:`A cataract is clouding of the normally clear lens, reducing light transmission to the retina. Most commonly age-related, but can result from injury, radiation, inflammation, or certain medications. Vision gradually becomes blurry and colors appear faded, eventually requiring surgical intervention.`,
+    symptoms:[
+      'Blurry or cloudy vision',
+      'Colors appear faded or yellowed',
+      'Increased glare sensitivity',
+      'Difficulty driving at night',
+      'Frequent changes in eyeglass prescription',
+    ],
+  },
+  diabetic_retinopathy:{
+    name:'Diabetic Retinopathy',
+    tagline:'Retinal blood vessel damage — complication of diabetes affecting vision.',
+    colour:'#dc2626',
+    kind:'Degenerative Disease',
+    channel:'Retinal Vascular Disease',
+    prevalence:'1/3 of diabetics',
+    inheritance:'Related to diabetes',
+    severity:'Severe (if untreated)',
+    description:`Diabetic retinopathy develops when high blood sugar damages blood vessels in the retina. It progresses from nonproliferative (microaneurysms, hemorrhages) to proliferative (abnormal new vessel growth). Early stages may have no symptoms; advanced stages can cause severe vision loss or blindness.`,
+    symptoms:[
+      'Often no early symptoms',
+      'Floaters and blurred vision',
+      'Dark spots or strings in vision',
+      'Difficulty seeing at night',
+      'Sudden vision loss (in advanced stages)',
+    ],
+  },
+  retinal_detachment:{
+    name:'Retinal Detachment',
+    tagline:'Retina separation from eye wall — emergency condition causing sudden vision loss.',
+    colour:'#991b1b',
+    kind:'Structural Disorder',
+    channel:'Retinal Emergency',
+    prevalence:'1 in 10,000',
+    inheritance:'Genetic risk factors',
+    severity:'Critical',
+    description:`Retinal detachment occurs when the light-sensitive retina separates from the underlying eye wall, disrupting nutrient and oxygen supply. This is a medical emergency requiring immediate treatment. Causes include tears, traction, or fluid accumulation behind the retina.`,
+    symptoms:[
+      'Sudden shower of floaters',
+      'Flashing lights in peripheral vision',
+      'Dark shadow or "curtain" moving across visual field',
+      'Sudden vision loss in part of eye',
+      'Pain (in some cases)',
+    ],
+  },
+  keratitis:{
+    name:'Keratitis',
+    tagline:'Corneal inflammation — eye pain and vision loss due to inflammation or infection.',
+    colour:'#ea580c',
+    kind:'Inflammatory Disease',
+    channel:'Corneal Inflammation',
+    prevalence:'Varies by cause',
+    inheritance:'Not inherited',
+    severity:'Moderate–Severe',
+    description:`Keratitis is inflammation of the cornea, caused by infection (bacterial, viral, fungal, or parasitic), injury, dry eye, or autoimmune conditions. Symptoms include eye pain, tearing, and vision loss. Requires urgent diagnosis and treatment to prevent scarring and permanent vision loss.`,
+    symptoms:[
+      'Eye pain and discomfort',
+      'Foreign body sensation',
+      'Excessive tearing',
+      'Red and inflamed eye',
+      'Blurry vision and light sensitivity',
+    ],
+  },
+  retinitis_pigmentosa:{
+    name:'Retinitis Pigmentosa',
+    tagline:'Progressive rod-cone dystrophy — gradual degeneration of photoreceptor cells.',
+    colour:'#7c3aed',
+    kind:'Degenerative Disease',
+    channel:'Photoreceptor Degeneration',
+    prevalence:'1 in 4000',
+    inheritance:'Genetic (multiple patterns)',
+    severity:'Progressive to severe',
+    description:`Retinitis pigmentosa (RP) is a group of genetic disorders causing progressive degeneration of photoreceptors, particularly rods (responsible for night vision). Patients typically experience night blindness first, followed by progressive peripheral vision loss, eventually leading to tunnel vision or complete blindness.`,
+    symptoms:[
+      'Night blindness (nyctalopia) - earliest symptom',
+      'Progressive peripheral vision loss',
+      'Tunnel vision in advanced stages',
+      'Difficulty adapting to darkness',
+      'Complete blindness (in late stages)',
+    ],
+  },
+  dry_eye_syndrome:{
+    name:'Dry Eye Syndrome',
+    tagline:'Tear deficiency — inadequate tear production or poor tear quality.',
+    colour:'#d97706',
+    kind:'Surface Disease',
+    channel:'Tear Film Deficiency',
+    prevalence:'10% of population',
+    inheritance:'Not inherited',
+    severity:'Mild–Moderate',
+    description:`Dry eye syndrome occurs when tears are insufficient in quantity or quality to maintain corneal hydration. Causes include reduced tear production, increased tear evaporation, or poor tear composition. Chronic condition affecting comfort and vision, requiring ongoing management.`,
+    symptoms:[
+      'Eye dryness and grittiness',
+      'Burning or stinging sensation',
+      'Excessive tearing (paradoxical)',
+      'Blurry vision',
+      'Discomfort from wind or dry environment',
+    ],
+  },
+  optic_neuritis:{
+    name:'Optic Neuritis',
+    tagline:'Optic nerve inflammation — loss of vision due to nerve swelling.',
+    colour:'#5b21b6',
+    kind:'Inflammatory Disease',
+    channel:'Optic Nerve Inflammation',
+    prevalence:'1 in 50,000',
+    inheritance:'Not inherited',
+    severity:'Moderate–Severe',
+    description:`Optic neuritis is inflammation of the optic nerve, often associated with multiple sclerosis or autoimmune conditions. It causes sudden vision loss, pain with eye movement, and color vision defects. Vision often improves with treatment, though some residual effects may persist.`,
+    symptoms:[
+      'Sudden vision loss in one eye',
+      'Pain on eye movement',
+      'Color vision defects (color blindness)',
+      'Decreased brightness perception',
+      'Scotoma (dark spot in vision)',
+    ],
+  },
+  ocular_melanoma:{
+    name:'Ocular Melanoma',
+    tagline:'Malignant tumor of eye tissue — rare intraocular cancer.',
+    colour:'#1e1b4b',
+    kind:'Malignant Disease',
+    channel:'Intraocular Tumor',
+    prevalence:'5 in 1 million',
+    inheritance:'Genetic predisposition',
+    severity:'Critical',
+    description:`Ocular melanoma is a rare malignant tumor arising from melanocytes in the eye, most commonly in the uvea (iris, ciliary body, or choroid). It is the most common intraocular cancer in adults. Early detection is crucial for treatment options and vision preservation.`,
+    symptoms:[
+      'Often asymptomatic (discovered on eye exam)',
+      'Floaters or flashing lights',
+      'Blurry vision or vision loss',
+      'Dark spot on iris or inside eye',
+      'Eye pain (if advanced)',
+    ],
+  },
+};
+
+/* ═══════════════════════════════════════════════════════
+   BUILD EYE DISEASE LISTS
+═══════════════════════════════════════════════════════ */
+function buildEyeDiseasesList(){
+  const categories = {
+    'Refractive Error': 'refractive-list',
+    'Structural Disorder': 'structural-list',
+    'Inflammatory Disease': 'inflammation-list',
+    'Degenerative Disease': 'inflammation-list',
+    'Surface Disease': 'inflammation-list',
+    'Malignant Disease': 'other-list',
+  };
+
+  Object.entries(DISEASES).forEach(([key, disease]) => {
+    // Skip colour blindness diseases
+    if(['deuteranomaly','protanomaly','deuteranopia','protanopia','tritanopia','tritanomaly','achromatopsia'].includes(key)) return;
+
+    let container;
+    if(disease.kind === 'Refractive Error') {
+      container = document.getElementById('refractive-list');
+    } else if(['Structural Disorder','Developmental Vision Loss'].includes(disease.kind)) {
+      container = document.getElementById('structural-list');
+    } else if(['Inflammatory Disease','Degenerative Disease','Surface Disease'].includes(disease.kind)) {
+      container = document.getElementById('inflammation-list');
+    } else {
+      container = document.getElementById('other-list');
+    }
+
+    if(!container) return;
+
+    const item = document.createElement('div');
+    item.className = 'dl-item';
+    item.onclick = () => openDisease(key);
+    
+    const severityClass = disease.severity.includes('Critical') ? 'vr' : disease.severity.includes('Severe') ? 'rare' : 'common';
+    const severityText = disease.severity.includes('Critical') ? 'CRITICAL' : disease.severity.includes('Severe') ? 'SEVERE' : 'COMMON';
+
+    item.innerHTML = `
+      <div class="dl-item-left">
+        <div class="dl-dot" style="background:${disease.colour};box-shadow:0 0 8px ${disease.colour}55"></div>
+        <div class="dl-item-info">
+          <div class="dl-item-name">${disease.name}</div>
+          <div class="dl-item-kind">${disease.kind} · ${disease.channel}</div>
+        </div>
+      </div>
+      <div class="dl-item-right">
+        <span class="dl-badge ${severityClass}">${severityText}</span>
+        ${disease.test ? `<span style="font-size:.7rem;color:var(--text-muted);margin-right:.5rem">${disease.test}</span>` : ''}
+        <svg class="dl-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+// Build disease lists on load
+document.addEventListener('DOMContentLoaded', buildEyeDiseasesList);
+
+/* ═══════════════════════════════════════════════════════
+   PAGE NAVIGATION
+═══════════════════════════════════════════════════════ */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>{
+    p.classList.toggle('gone', p.id!==id);
+    if(p.id===id) p.scrollTop=0;
+  });
+  if (id === 'reports') { setTimeout(renderReports, 50); }
+  if (id === 'ishihara-test') {
+    // Reset test state
+    ishiharaQuestion = 0;
+    ishiharaAnswers = [];
+    const c = document.getElementById('ishihara-container');
+    const r = document.getElementById('ishihara-result');
+    if (c) c.style.display = '';
+    if (r) r.style.display = 'none';
+    setTimeout(displayIshiharaPlate, 50);
+  }
+  if (id === 'full-assessment') {
+    assessmentQuestion = 0;
+    assessmentAnswers = [];
+    const ac = document.getElementById('assessment-container');
+    const ar = document.getElementById('assessment-result');
+    if (ac) ac.style.display = '';
+    if (ar) ar.style.display = 'none';
+    setTimeout(displayAssessmentQuestion, 50);
+  }
+  if (id === 'contrast-test') { setTimeout(updateContrastUI, 50); }
+  // Re-render auth slots so profile/sign-in stays in sync
+  setTimeout(renderAuthSlots, 10);
+}
+
+/* ═══════════════════════════════════════════════════════
+   OPEN DISEASE
+═══════════════════════════════════════════════════════ */
+function openDisease(key){
+  const d = DISEASES[key];
+  if(!d) return;
+  buildDetailPage(key, d);
+  showPage('ddetail');
+}
+
+function buildDetailPage(key, d){
+  const wrap = document.getElementById('ddContent');
+  wrap.innerHTML = '';
+
+  const back = document.createElement('button');
+  back.className='back-btn';
+  back.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg> Back to Diseases`;
+  back.onclick=()=>showPage('dlist');
+  wrap.appendChild(back);
+
+  const hdr = document.createElement('div');
+  hdr.className='dd-header';
+  hdr.innerHTML=`
+    <div class="dd-tag" style="background:${d.colour}18;color:${d.colour};border:1px solid ${d.colour}33">
+      ${d.kind} · ${d.channel}
+    </div>
+    <h1 class="dd-name">${d.name}</h1>
+    <p class="dd-tagline">${d.tagline}</p>
+  `;
+  wrap.appendChild(hdr);
+
+  const ig = document.createElement('div');
+  ig.className='dd-info-grid';
+  ig.innerHTML=`
+    <div class="dd-info-card"><div class="dd-info-label">Prevalence</div><div class="dd-info-val">${d.prevalence}</div></div>
+    <div class="dd-info-card"><div class="dd-info-label">Inheritance</div><div class="dd-info-val">${d.inheritance}</div></div>
+    <div class="dd-info-card"><div class="dd-info-label">Severity</div><div class="dd-info-val">${d.severity}</div></div>
+  `;
+  wrap.appendChild(ig);
+
+  const db = document.createElement('div');
+  db.className='dd-desc-block';
+  db.innerHTML=`
+    <h3><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${d.colour}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>About this Condition</h3>
+    <p>${d.description}</p>
+    <ul style="margin-top:.8rem">${d.symptoms.map(s=>`<li>${s}</li>`).join('')}</ul>
+  `;
+  wrap.appendChild(db);
+}
+
+/* ═══════════════════════════════════════════════════════
+   ISHIHARA PLATE GENERATOR (20 plates)
+═══════════════════════════════════════════════════════ */
+
+// Seeded pseudo-random for reproducible plate layouts
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 0xffffffff;
+  };
+}
+
+const ishiharePlates = [
+  { id:1,  number:'12', answers:['12','6','I am unable to See'],  correct:0, type:'control',    bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'],   fgColors:['#D4905A','#C87845','#E8A870','#B86535'],   description:'Visible to all — everyone should see 12', badge:'Control', badgeColor:'rgba(0,229,255,.8)', badgeBg:'rgba(0,229,255,.08)', badgeBorder:'rgba(0,229,255,.15)' },
+  { id:2,  number:'8',  answers:['3','8','I am unable to See'],   correct:0, type:'red-green',  bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'],   fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal vision: 8 · Red-green deficient: 3 or nothing', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:3,  number:'5',  answers:['2','5','I am unable to See'],   correct:0, type:'red-green',  bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'],   fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal vision: 5 · Red-green deficient: 2 or nothing', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:4,  number:'29', answers:['70','29','I am unable to See'],  correct:0, type:'protan',    bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'],   fgColors:['#A85030','#904020','#C06040','#7A3018','#D07050','#B25538'], description:'Normal vision: 29 · Protanopia: 70', badge:'Red Test', badgeColor:'rgba(220,60,60,.8)', badgeBg:'rgba(220,0,0,.08)', badgeBorder:'rgba(220,0,0,.2)' },
+  { id:5,  number:'74', answers:['74','21','I am unable to See'],  correct:0, type:'deuteran',  bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'],   fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal vision: 74 · Deuteranopia: 21', badge:'Green Test', badgeColor:'rgba(80,200,80,.8)', badgeBg:'rgba(0,180,0,.08)', badgeBorder:'rgba(0,180,0,.2)' },
+  { id:6,  number:'7',  answers:['7','2','I am unable to See'], correct:0, type:'red-green', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 7 · Deficient: may not see clearly', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:7,  number:'45', answers:['48','45','I am unable to See'], correct:0, type:'red-green', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 45 · Deficient: hard to distinguish', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:8,  number:'2',  answers:['2','7','I am unable to See'], correct:0, type:'protan', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#A85030','#904020','#C06040','#7A3018','#D07050','#B25538'], description:'Normal: 2 · Protan: may see nothing', badge:'Red Test', badgeColor:'rgba(220,60,60,.8)', badgeBg:'rgba(220,0,0,.08)', badgeBorder:'rgba(220,0,0,.2)' },
+  { id:9,  number:'97', answers:['97','99','I am unable to See'], correct:0, type:'deuteran', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 97 · Deuteran: unclear', badge:'Green Test', badgeColor:'rgba(80,200,80,.8)', badgeBg:'rgba(0,180,0,.08)', badgeBorder:'rgba(0,180,0,.2)' },
+  { id:10, number:'16', answers:['16','76','I am unable to See'], correct:0, type:'red-green', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 16 · Deficient: unclear', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:11, number:'6',  answers:['8','6','I am unable to See'], correct:0, type:'protan', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#A85030','#904020','#C06040','#7A3018','#D07050','#B25538'], description:'Normal: 6 · Protan: unclear', badge:'Red Test', badgeColor:'rgba(220,60,60,.8)', badgeBg:'rgba(220,0,0,.08)', badgeBorder:'rgba(220,0,0,.2)' },
+  { id:12, number:'38', answers:['88','38','I am unable to See'], correct:0, type:'deuteran', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 38 · Deuteran: unclear', badge:'Green Test', badgeColor:'rgba(80,200,80,.8)', badgeBg:'rgba(0,180,0,.08)', badgeBorder:'rgba(0,180,0,.2)' },
+  { id:13, number:'3',  answers:['3','8',' I am unable to See'], correct:0, type:'red-green', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 3 · Deficient: hard to see', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:14, number:'15', answers:['15','78','I am unable to See'], correct:0, type:'protan', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#A85030','#904020','#C06040','#7A3018','#D07050','#B25538'], description:'Normal: 15 · Protan: difficult', badge:'Red Test', badgeColor:'rgba(220,60,60,.8)', badgeBg:'rgba(220,0,0,.08)', badgeBorder:'rgba(220,0,0,.2)' },
+  { id:15, number:'73', answers:['73','28','I am unable to See'], correct:0, type:'deuteran', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 73 · Deuteran: unclear', badge:'Green Test', badgeColor:'rgba(80,200,80,.8)', badgeBg:'rgba(0,180,0,.08)', badgeBorder:'rgba(0,180,0,.2)' },
+  { id:16, number:'26', answers:['78','26','I am unable to See'], correct:0, type:'red-green', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 26 · Deficient: hard', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:17, number:'42', answers:['97','42','I am unable to See'], correct:0, type:'protan', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#A85030','#904020','#C06040','#7A3018','#D07050','#B25538'], description:'Normal: 42 · Protan: difficult', badge:'Red Test', badgeColor:'rgba(220,60,60,.8)', badgeBg:'rgba(220,0,0,.08)', badgeBorder:'rgba(220,0,0,.2)' },
+  { id:18, number:'35', answers:['88','35','I am unable to See'], correct:0, type:'deuteran', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 35 · Deuteran: unclear', badge:'Green Test', badgeColor:'rgba(80,200,80,.8)', badgeBg:'rgba(0,180,0,.08)', badgeBorder:'rgba(0,180,0,.2)' },
+  { id:19, number:'9',  answers:['9','4','I am unable to See'], correct:0, type:'red-green', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'], fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Normal: 9 · Deficient: unclear', badge:'Red-Green', badgeColor:'rgba(255,160,50,.85)', badgeBg:'rgba(255,120,0,.08)', badgeBorder:'rgba(255,120,0,.2)' },
+  { id:20, number:'17', answers:['17','77','I am unable to See'],  correct:0, type:'control', bgColors:['#D4905A','#C87845','#E8A870','#B86535','#F0BB85','#CC8050'],  fgColors:['#5C9E3A','#4A8C2A','#6DB04A','#3D7A22','#82C45C','#559433'], description:'Final control — visible to all with normal vision', badge:'Control', badgeColor:'rgba(0,229,255,.8)', badgeBg:'rgba(0,229,255,.08)', badgeBorder:'rgba(0,229,255,.15)' },
+];
+
+// Generate SVG Ishihara plate
+function generateIshiharaPlate(plateData, size=320) {
+  const rand = seededRandom(plateData.id * 7919);
+  const cx = size / 2, cy = size / 2, r = size / 2 - 2;
+  const dots = [];
+  const numDots = 280 + Math.floor(rand() * 60);
+
+  // Grid-based placement for even distribution
+  const gridCols = 22, gridRows = 22;
+  const cellW = size / gridCols, cellH = size / gridRows;
+  const positions = [];
+
+  for (let row = 0; row < gridRows; row++) {
+    for (let col = 0; col < gridCols; col++) {
+      const jx = (rand() - 0.5) * cellW * 0.85;
+      const jy = (rand() - 0.5) * cellH * 0.85;
+      const px = col * cellW + cellW/2 + jx;
+      const py = row * cellH + cellH/2 + jy;
+      const distFromCenter = Math.sqrt((px-cx)**2 + (py-cy)**2);
+      if (distFromCenter < r - 4) positions.push({px, py});
+    }
+  }
+
+  // Shuffle positions
+  for (let i = positions.length-1; i>0; i--) {
+    const j = Math.floor(rand() * (i+1));
+    [positions[i], positions[j]] = [positions[j], positions[i]];
+  }
+
+  // Determine digit pixel map for the number (2-digit, on a 14x10 grid centered)
+  const digitPixels = getDigitPixels(plateData.number, size);
+
+  positions.forEach(({px, py}, idx) => {
+    if (idx >= numDots) return;
+    const minR = size * 0.028, maxR = size * 0.072;
+    const dotR = minR + rand() * (maxR - minR);
+    // Check if this dot position is inside a digit
+    const inDigit = digitPixels.some(dp => {
+      const d = Math.sqrt((px - dp.x)**2 + (py - dp.y)**2);
+      return d < dp.r + dotR * 0.6;
+    });
+    let color;
+    if (inDigit) {
+      color = plateData.fgColors[Math.floor(rand() * plateData.fgColors.length)];
+    } else {
+      color = plateData.bgColors[Math.floor(rand() * plateData.bgColors.length)];
+    }
+    // slight brightness variation
+    dots.push({ x: px, y: py, r: dotR, color });
+  });
+
+  const svgDots = dots.map(d => `<circle cx="${d.x.toFixed(1)}" cy="${d.y.toFixed(1)}" r="${d.r.toFixed(1)}" fill="${d.color}"/>`).join('');
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="plate-clip-${plateData.id}">
+      <circle cx="${cx}" cy="${cy}" r="${r}"/>
+    </clipPath>
+  </defs>
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="#C8865A"/>
+  <g clip-path="url(#plate-clip-${plateData.id})">${svgDots}</g>
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(0,0,0,0.12)" stroke-width="2"/>
+</svg>`;
+}
+
+// Font pixel maps for digits 0-9 (5x7 grid)
+const DIGIT_MAP = {
+  '0': [[1,0],[2,0],[3,0],[0,1],[4,1],[0,2],[4,2],[0,3],[4,3],[0,4],[4,4],[0,5],[4,5],[1,6],[2,6],[3,6]],
+  '1': [[2,0],[1,1],[2,1],[2,2],[2,3],[2,4],[2,5],[1,6],[2,6],[3,6]],
+  '2': [[1,0],[2,0],[3,0],[0,1],[4,1],[4,2],[3,3],[2,4],[1,5],[0,5],[0,6],[1,6],[2,6],[3,6],[4,6]],
+  '3': [[0,0],[1,0],[2,0],[3,0],[4,1],[4,2],[2,3],[3,3],[4,4],[4,5],[0,6],[1,6],[2,6],[3,6]],
+  '4': [[0,0],[4,0],[0,1],[4,1],[0,2],[4,2],[0,3],[1,3],[2,3],[3,3],[4,3],[4,4],[4,5],[4,6]],
+  '5': [[0,0],[1,0],[2,0],[3,0],[4,0],[0,1],[0,2],[1,2],[2,2],[3,2],[4,3],[4,4],[4,5],[0,5],[1,6],[2,6],[3,6]],
+  '6': [[1,0],[2,0],[3,0],[0,1],[0,2],[1,2],[2,2],[3,2],[0,3],[4,3],[0,4],[4,4],[0,5],[4,5],[1,6],[2,6],[3,6]],
+  '7': [[0,0],[1,0],[2,0],[3,0],[4,0],[4,1],[3,2],[2,3],[2,4],[2,5],[2,6]],
+  '8': [[1,0],[2,0],[3,0],[0,1],[4,1],[0,2],[4,2],[1,3],[2,3],[3,3],[0,4],[4,4],[0,5],[4,5],[1,6],[2,6],[3,6]],
+  '9': [[1,0],[2,0],[3,0],[0,1],[4,1],[0,2],[4,2],[1,3],[2,3],[3,3],[4,3],[4,4],[4,5],[1,6],[2,6],[3,6]],
+};
+
+function getDigitPixels(numStr, plateSize) {
+  const digits = numStr.toString().split('');
+  const pixelR = plateSize * 0.038;
+  const spacing = pixelR * 2.4;
+  const cellSize = spacing;
+  const totalW = digits.length * 5 * cellSize + (digits.length - 1) * cellSize * 1.2;
+  const startX = plateSize / 2 - totalW / 2;
+  const startY = plateSize / 2 - 3.5 * cellSize;
+  const pixels = [];
+  digits.forEach((d, di) => {
+    const map = DIGIT_MAP[d] || [];
+    const offsetX = startX + di * (5 * cellSize + cellSize * 1.2);
+    map.forEach(([col, row]) => {
+      pixels.push({
+        x: offsetX + col * cellSize + cellSize/2,
+        y: startY + row * cellSize + cellSize/2,
+        r: pixelR * 1.1
+      });
+    });
+  });
+  return pixels;
+}
+
+let ishiharaQuestion = 0;
+let ishiharaAnswers = [];
+
+function displayIshiharaPlate() {
+  const plate = ishiharePlates[ishiharaQuestion];
+  const container = document.getElementById('plate-display');
+  const buttonsContainer = document.getElementById('answer-buttons');
+  const nextBtn = document.getElementById('next-btn');
+  const prevBtn = document.getElementById('prev-plate-btn');
+  const plateNum = document.getElementById('plate-num');
+  const plateTotal = document.getElementById('plate-total');
+  const progressBar = document.getElementById('plate-progress-bar');
+  const badge = document.getElementById('plate-type-badge');
+  const instruction = document.getElementById('plate-instruction');
+
+  if (!container) return;
+
+  plateNum.textContent = ishiharaQuestion + 1;
+  plateTotal.textContent = ishiharePlates.length;
+  progressBar.style.width = `${((ishiharaQuestion + 1) / ishiharePlates.length) * 100}%`;
+
+  badge.textContent = plate.badge;
+  badge.style.color = plate.badgeColor;
+  badge.style.background = plate.badgeBg;
+  badge.style.borderColor = plate.badgeBorder;
+
+  // Render SVG plate
+  container.innerHTML = generateIshiharaPlate(plate, 320);
+
+  instruction.textContent = plate.description;
+
+  buttonsContainer.innerHTML = plate.answers.map((ans, idx) => `
+    <button onclick="recordIshiharaAnswer(${idx})" style="
+      padding:.65rem 1.4rem;border-radius:9px;
+      font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;
+      cursor:pointer;border:1px solid var(--border-strong);
+      background:${ishiharaAnswers[ishiharaQuestion]===idx ? 'var(--accent-cyan)' : 'transparent'};
+      color:${ishiharaAnswers[ishiharaQuestion]===idx ? '#000' : 'var(--text-primary)'};
+      transition:all .18s;
+    ">${ans === 'None' ? "I can't see a number" : ans === 'Not sure' ? 'Not sure' : ans === 'Unsure' ? 'Unsure' : ' ' + ans}</button>
+  `).join('');
+
+  prevBtn.style.display = ishiharaQuestion > 0 ? 'inline-flex' : 'none';
+  nextBtn.textContent = ishiharaQuestion === ishiharePlates.length - 1 ? 'Finish Test' : 'Next →';
+}
+
+function recordIshiharaAnswer(idx) {
+  ishiharaAnswers[ishiharaQuestion] = idx;
+  displayIshiharaPlate();
+}
+
+function prevIshiharaPlate() {
+  if (ishiharaQuestion > 0) { ishiharaQuestion--; displayIshiharaPlate(); }
+}
+
+function nextIshiharaPlate() {
+  if (ishiharaQuestion < ishiharePlates.length - 1) {
+    ishiharaQuestion++;
+    displayIshiharaPlate();
+  } else {
+    finishIshihara();
+  }
+}
+
+function finishIshihara() {
+  const correctCount = ishiharaAnswers.filter((a, i) => a === ishiharePlates[i].correct).length;
+  const resultDiv = document.getElementById('ishihara-result');
+  const resultContent = document.getElementById('result-content');
+  const container = document.getElementById('ishihara-container');
+
+  let diagnosis = '';
+  let color = '#00e5ff';
+  const pct = (correctCount / ishiharePlates.length) * 100;
+
+  if (pct >= 90) { diagnosis = 'Normal Colour Vision'; color = '#00e5ff'; }
+  else if (pct >= 70) { diagnosis = 'Possible Mild Red-Green Deficiency'; color = '#a855f7'; }
+  else if (pct >= 50) { diagnosis = 'Red-Green Colour Vision Deficiency'; color = '#ff9500'; }
+  else { diagnosis = 'Significant Colour Vision Deficiency'; color = '#dc2626'; }
+
+  // Save to reports
+  saveTestRecord('Ishihara Plate Test (20 plates)', diagnosis);
+
+  resultContent.innerHTML = `
+    <div style="background:${color}20;border:2px solid ${color};border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
+      <h3 style="color:${color};font-family:'Syne',sans-serif;font-weight:800;margin-bottom:.5rem">${diagnosis}</h3>
+      <p style="color:var(--text-secondary);font-size:.9rem">You correctly identified ${correctCount} of ${ishiharePlates.length} plates (${Math.round(pct)}%).</p>
+    </div>
+    <p style="color:var(--text-secondary);font-size:.85rem;line-height:1.8;margin-bottom:1.2rem">This test is a preliminary screening tool. Consult an optometrist for a definitive diagnosis.</p>
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap">
+      <button class="ha-primary" onclick="showPage('home')">Return Home</button>
+      <button class="ha-secondary" onclick="showPage('reports')">View My Reports</button>
+    </div>
+  `;
+
+  container.style.display = 'none';
+  resultDiv.style.display = 'block';
+}
+
+/* ═══════════════════════════════════════════════════════
+   COLOR CONTRAST CHECKER
+═══════════════════════════════════════════════════════ */
+function hexToRgbStr(hex) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+  const r = parseInt(hex.slice(0,2),16);
+  const g = parseInt(hex.slice(2,4),16);
+  const b = parseInt(hex.slice(4,6),16);
+  return `rgb(${r},${g},${b})`;
+}
+
+function rgbStrToHex(rgb) {
+  const m = rgb.match(/\d+/g);
+  if (!m) return '#000000';
+  return '#' + m.slice(0,3).map(n => parseInt(n).toString(16).padStart(2,'0')).join('');
+}
+
+function onHexInput(which) {
+  const inp = document.getElementById(which === 'fg' ? 'fg-hex-input' : 'bg-hex-input');
+  let val = inp.value.trim();
+  if (!val.startsWith('#')) val = '#' + val;
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    document.getElementById(which === 'fg' ? 'text-color' : 'bg-color').value = val;
+    document.getElementById(which === 'fg' ? 'fg-swatch' : 'bg-swatch').style.background = val;
+    updateContrastUI();
+  }
+}
+
+function syncFromPicker(which) {
+  const val = document.getElementById(which === 'fg' ? 'text-color' : 'bg-color').value;
+  document.getElementById(which === 'fg' ? 'fg-hex-input' : 'bg-hex-input').value = val;
+  document.getElementById(which === 'fg' ? 'fg-swatch' : 'bg-swatch').style.background = val;
+  updateContrastUI();
+}
+
+function updateContrastUI() {
+  const fgHex = document.getElementById('text-color').value || '#ffffff';
+  const bgHex = document.getElementById('bg-color').value || '#07070f';
+  const fgRgb = hexToRgbStr(fgHex);
+  const bgRgb = hexToRgbStr(bgHex);
+
+  const ratio = calculateContrastRatio(fgRgb, bgRgb);
+  document.getElementById('contrast-ratio').textContent = ratio.toFixed(2) + ':1';
+
+  const aaPass = ratio >= 4.5;
+  const aaaPass = ratio >= 7;
+
+  document.getElementById('aa-dot').style.background = aaPass ? '#22c55e' : '#ef4444';
+  document.getElementById('aaa-dot').style.background = aaaPass ? '#22c55e' : '#ef4444';
+
+  // Update preview card
+  const card = document.getElementById('contrast-preview-card');
+  card.style.background = bgHex;
+  card.querySelector('h3').style.color = fgHex;
+  card.querySelector('p').style.color = fgHex;
+  const btn = card.querySelector('button');
+  btn.style.color = fgHex;
+  btn.style.borderColor = fgHex;
+
+  updateContrastSimulation();
+}
+
+function updateContrastSimulation() {
+  const deficiency = document.getElementById('deficiency-select') ? document.getElementById('deficiency-select').value : 'normal';
+  const fgHex = document.getElementById('text-color') ? document.getElementById('text-color').value : '#ffffff';
+  const bgHex = document.getElementById('bg-color') ? document.getElementById('bg-color').value : '#07070f';
+
+  let simFg = hexToRgbStr(fgHex);
+  let simBg = hexToRgbStr(bgHex);
+
+  if (deficiency === 'deuteranomaly' || deficiency === 'deuteranopia') {
+    simFg = shiftColor(fgHex, 'deuteran');
+    simBg = shiftColor(bgHex, 'deuteran');
+  } else if (deficiency === 'protanomaly' || deficiency === 'protanopia') {
+    simFg = shiftColor(fgHex, 'protan');
+    simBg = shiftColor(bgHex, 'protan');
+  } else if (deficiency === 'tritanopia') {
+    simFg = shiftColor(fgHex, 'tritan');
+    simBg = shiftColor(bgHex, 'tritan');
+  } else if (deficiency === 'achromatopsia') {
+    simFg = toGrayscale(fgHex);
+    simBg = toGrayscale(bgHex);
+  }
+
+  const defCard = document.getElementById('deficiency-preview-card');
+  if (defCard) {
+    defCard.style.background = simBg;
+    const h4 = defCard.querySelector('h4');
+    const p = defCard.querySelector('p');
+    if (h4) h4.style.color = simFg;
+    if (p) p.style.color = simFg;
+    const ratio2 = calculateContrastRatio(simFg, simBg);
+    const defRatioEl = document.getElementById('def-contrast-ratio');
+    if (defRatioEl) defRatioEl.textContent = ratio2.toFixed(2) + ':1';
+    const defInfo = document.getElementById('def-contrast-info');
+    if (defInfo) defInfo.style.color = simFg;
+  }
+}
+
+function shiftColor(hexColor, type) {
+  let r, g, b;
+  if (hexColor.startsWith('#')) {
+    r = parseInt(hexColor.slice(1, 3), 16);
+    g = parseInt(hexColor.slice(3, 5), 16);
+    b = parseInt(hexColor.slice(5, 7), 16);
+  } else {
+    const m = hexColor.match(/\d+/g);
+    r = parseInt(m[0]); g = parseInt(m[1]); b = parseInt(m[2]);
+  }
+  let newR = r, newG = g, newB = b;
+  if (type === 'deuteran') { newG = (r + g) / 2; }
+  else if (type === 'protan') { newR = (r + g) / 2; }
+  else if (type === 'tritan') { newB = (r + b) / 2; }
+  return `rgb(${Math.round(newR)}, ${Math.round(newG)}, ${Math.round(newB)})`;
+}
+
+function toGrayscale(hexColor) {
+  let r, g, b;
+  if (hexColor.startsWith('#')) {
+    r = parseInt(hexColor.slice(1, 3), 16);
+    g = parseInt(hexColor.slice(3, 5), 16);
+    b = parseInt(hexColor.slice(5, 7), 16);
+  } else {
+    const m = hexColor.match(/\d+/g);
+    r = parseInt(m[0]); g = parseInt(m[1]); b = parseInt(m[2]);
+  }
+  const gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+  return `rgb(${gray}, ${gray}, ${gray})`;
+}
+
+function calculateContrastRatio(color1, color2) {
+  const getLuminance = (color) => {
+    const rgb = color.match(/\d+/g).map(x => parseInt(x));
+    const [r, g, b] = rgb.map(val => {
+      val = val / 255;
+      return val <= 0.03928 ? val / 12.92 : Math.pow((val + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+
+  const lum1 = getLuminance(color1);
+  const lum2 = getLuminance(color2);
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/* ═══════════════════════════════════════════════════════
+   FULL ASSESSMENT
+═══════════════════════════════════════════════════════ */
+const assessmentQuestions = [
+  {
+    question: 'How do you perceive red objects?',
+    options: ['Bright red and clear', 'Darker/duller than normal', 'Appear greenish or brown'],
+    type: 'protan'
+  },
+  {
+    question: 'How do you perceive green objects?',
+    options: ['Bright green and clear', 'Less saturated/muted', 'Appear reddish or brown'],
+    type: 'deuteran'
+  },
+  {
+    question: 'Can you distinguish red from green?',
+    options: ['Yes, clearly', 'Sometimes, it\'s difficult', 'No, they appear similar'],
+    type: 'rdg'
+  },
+  {
+    question: 'How do you perceive blue objects?',
+    options: ['Bright blue and clear', 'Normal', 'Appear greenish or unclear'],
+    type: 'tritan'
+  },
+  {
+    question: 'Do you have difficulty with traffic lights?',
+    options: ['No, I identify them easily', 'Sometimes, depending on lighting', 'Yes, I rely on position to know'],
+    type: 'rdg'
+  },
+  {
+    question: 'How would you describe your overall colour vision?',
+    options: ['Normal, no issues', 'Occasionally have difficulty', 'Frequently have difficulty'],
+    type: 'general'
+  },
+  {
+    question: 'When reading colour-coded charts, do you struggle?',
+    options: ['No issues', 'Mild difficulty', 'Significant difficulty'],
+    type: 'general'
+  },
+  {
+    question: 'Have you ever been told you have colour blindness?',
+    options: ['No', 'Not sure', 'Yes'],
+    type: 'history'
+  },
+  {
+    question: 'Do you have difficulty distinguishing yellow from violet?',
+    options: ['No, I see them clearly', 'Sometimes', 'Yes, they look similar'],
+    type: 'tritan'
+  },
+  {
+    question: 'In your daily life, how often do colours affect your activities?',
+    options: ['Never', 'Occasionally', 'Frequently'],
+    type: 'impact'
+  },
+];
+
+let assessmentQuestion = 0;
+let assessmentAnswers = [];
+
+// Map assessment question types to plate indices for visual context
+const assessmentPlateMap = [0,1,2,3,4,5,6,7,8,9]; // one plate per question (plates 1–10)
+
+function displayAssessmentQuestion() {
+  const q = assessmentQuestions[assessmentQuestion];
+  const content = document.getElementById('question-content');
+  const currentQ = document.getElementById('current-q');
+  const questionText = document.getElementById('question-text');
+  const progressBar = document.getElementById('progress-bar');
+  const prevBtn = document.getElementById('prev-assess');
+  const nextBtn = document.getElementById('next-assess');
+
+  currentQ.innerText = assessmentQuestion + 1;
+  questionText.innerText = q.question;
+
+  // Determine plate to show (use mapped plate index)
+  const plateIdx = assessmentPlateMap[assessmentQuestion % assessmentPlateMap.length];
+  const plateData = ishiharePlates[plateIdx];
+  const plateSvg = generateIshiharaPlate(plateData, 200);
+
+  // Highlight selected answer
+  content.innerHTML = `
+    <div style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.2rem">
+      <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:.6rem">
+        <div style="width:200px;height:200px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 5px rgba(255,255,255,.05),0 4px 24px rgba(0,0,0,.35)">${plateSvg}</div>
+        <span style="font-size:.72rem;color:var(--text-muted);letter-spacing:.06em;text-transform:uppercase">Plate ${plateIdx+1}</span>
+      </div>
+      <div style="flex:1;min-width:220px">
+        ${q.options.map((opt, idx) => `
+          <button onclick="assessmentAnswers[${assessmentQuestion}]=${idx}; displayAssessmentQuestion()" style="display:block;width:100%;text-align:left;margin-bottom:.7rem;padding:.85rem 1.1rem;border-radius:9px;font-family:'Instrument Sans',sans-serif;font-size:.9rem;font-weight:500;cursor:pointer;border:1px solid ${assessmentAnswers[assessmentQuestion]===idx ? 'var(--accent-cyan)' : 'var(--border-strong)'};background:${assessmentAnswers[assessmentQuestion]===idx ? 'rgba(0,229,255,.08)' : 'transparent'};color:${assessmentAnswers[assessmentQuestion]===idx ? 'var(--accent-cyan)' : 'var(--text-primary)'};transition:all .18s">
+            ${opt}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  progressBar.style.width = `${((assessmentQuestion + 1) / assessmentQuestions.length) * 100}%`;
+  prevBtn.style.display = assessmentQuestion > 0 ? 'inline-flex' : 'none';
+  nextBtn.innerText = assessmentQuestion === assessmentQuestions.length - 1 ? 'Finish Assessment' : 'Next →';
+}
+
+function nextAssessmentQuestion() {
+  if (assessmentQuestion < assessmentQuestions.length - 1) {
+    assessmentQuestion++;
+    displayAssessmentQuestion();
+  } else {
+    finishAssessment();
+  }
+}
+
+function previousAssessmentQuestion() {
+  if (assessmentQuestion > 0) {
+    assessmentQuestion--;
+    displayAssessmentQuestion();
+  }
+}
+
+function finishAssessment() {
+  const container = document.getElementById('assessment-container');
+  const resultDiv = document.getElementById('assessment-result');
+  const resultContent = document.getElementById('result-assessment-content');
+
+  // Score answers
+  let protanScore = 0, deuteranScore = 0, tritanScore = 0, generalScore = 0;
+
+  assessmentAnswers.forEach((ans, idx) => {
+    const q = assessmentQuestions[idx];
+    if (q.type === 'protan' && ans === 1) protanScore += 2;
+    if (q.type === 'protan' && ans === 2) protanScore += 3;
+    if (q.type === 'deuteran' && ans === 1) deuteranScore += 2;
+    if (q.type === 'deuteran' && ans === 2) deuteranScore += 3;
+    if (q.type === 'rdg' && ans === 1) { protanScore++; deuteranScore++; }
+    if (q.type === 'rdg' && ans === 2) { protanScore += 2; deuteranScore += 2; }
+    if (q.type === 'tritan' && ans === 1) tritanScore += 2;
+    if (q.type === 'tritan' && ans === 2) tritanScore += 3;
+    if (q.type === 'general' && ans > 0) generalScore += ans;
+  });
+
+  let diagnosis = 'Normal Colour Vision';
+  let color = '#00e5ff';
+  let description = '';
+
+  if (protanScore >= 8) {
+    diagnosis = 'Possible Protanopia/Protanomaly (Red-Blind/Red-Weak)';
+    color = '#dc2626';
+    description = 'You may have difficulty distinguishing red colors. We recommend professional testing.';
+  } else if (deuteranScore >= 8) {
+    diagnosis = 'Possible Deuteranopia/Deuteranomaly (Green-Blind/Green-Weak)';
+    color = '#ff9500';
+    description = 'You may have difficulty distinguishing green colors. We recommend professional testing.';
+  } else if (tritanScore >= 4) {
+    diagnosis = 'Possible Tritanopia/Tritanomaly (Blue-Blind/Blue-Weak)';
+    color = '#a855f7';
+    description = 'You may have difficulty distinguishing blue and yellow colors. We recommend professional testing.';
+  } else if (generalScore >= 3) {
+    diagnosis = 'Possible Mild Colour Vision Deficiency';
+    color = '#f59e0b';
+    description = 'Some difficulty with colour discrimination detected. Professional evaluation recommended.';
+  } else {
+    diagnosis = 'Normal Colour Vision';
+    color = '#00e5ff';
+    description = 'Your responses suggest normal colour vision. No concerns indicated.';
+  }
+
+  resultContent.innerHTML = `
+    <div style="background:${color}20;border:2px solid ${color};border-radius:12px;padding:2rem;margin-bottom:1.5rem">
+      <h3 style="color:${color};font-family:'Syne',sans-serif;font-weight:800;margin-bottom:1rem;font-size:1.3rem">${diagnosis}</h3>
+      <p style="color:var(--text-secondary);font-size:.95rem;line-height:1.8">${description}</p>
+    </div>
+    
+    <div style="background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem">
+      <h4 style="font-family:'Syne',sans-serif;font-weight:700;color:var(--text-primary);margin-bottom:1rem">Assessment Scores:</h4>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div><p style="color:var(--text-muted);font-size:.85rem">Red Deficiency</p><p style="font-weight:800;color:var(--text-primary)">${protanScore}/10</p></div>
+        <div><p style="color:var(--text-muted);font-size:.85rem">Green Deficiency</p><p style="font-weight:800;color:var(--text-primary)">${deuteranScore}/10</p></div>
+        <div><p style="color:var(--text-muted);font-size:.85rem">Blue Deficiency</p><p style="font-weight:800;color:var(--text-primary)">${tritanScore}/5</p></div>
+        <div><p style="color:var(--text-muted);font-size:.85rem">General Difficulty</p><p style="font-weight:800;color:var(--text-primary)">${generalScore}/6</p></div>
+      </div>
+    </div>
+
+    <p style="color:var(--text-secondary);font-size:.85rem;line-height:1.8;margin-bottom:1.5rem">
+      <strong>Important:</strong> This assessment is a screening tool only and should not replace a professional eye examination. Please consult with an optometrist or ophthalmologist for a definitive diagnosis.
+    </p>
+
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap">
+      <button class="ha-primary" onclick="showPage('home')">Return Home</button>
+      <button class="ha-secondary" onclick="showPage('reports')">View My Reports</button>
+    </div>
+  `;
+
+  // Save to reports
+  saveTestRecord('Full Colour Vision Assessment', diagnosis);
+
+  container.style.display = 'none';
+  resultDiv.style.display = 'block';
+}
+
+/* ═══════════════════════════════════════════════════════
+   REPORTS SYSTEM
+═══════════════════════════════════════════════════════ */
+function getReports() {
+  try { return JSON.parse(localStorage.getItem('retinex_reports') || '[]'); } catch(e) { return []; }
+}
+
+function saveTestRecord(testName, diagnosis) {
+  const reports = getReports();
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+  const timeStr = now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+  reports.push({ testName, diagnosis, date: dateStr, time: timeStr, ts: Date.now() });
+  try { localStorage.setItem('retinex_reports', JSON.stringify(reports)); } catch(e) {}
+}
+
+function clearReports() {
+  if (confirm('Clear all test history?')) {
+    localStorage.removeItem('retinex_reports');
+    renderReports();
+  }
+}
+
+function renderReports() {
+  const reports = getReports();
+  const emptyEl = document.getElementById('reports-empty');
+  const listEl = document.getElementById('reports-list');
+  const timelineEl = document.getElementById('reports-timeline');
+
+  if (!emptyEl) return;
+
+  document.getElementById('rpt-total').textContent = reports.length;
+
+  const nonNormal = reports.filter(r => !r.diagnosis.includes('Normal'));
+  document.getElementById('rpt-conditions').textContent = nonNormal.length;
+
+  if (reports.length > 0) {
+    const last = reports[reports.length - 1];
+    document.getElementById('rpt-last').textContent = last.testName.split('(')[0].trim();
+  } else {
+    document.getElementById('rpt-last').textContent = '—';
+  }
+
+  if (reports.length === 0) {
+    emptyEl.style.display = 'block';
+    listEl.style.display = 'none';
+    timelineEl.style.display = 'none';
+    return;
+  }
+
+  emptyEl.style.display = 'none';
+  listEl.style.display = 'block';
+  timelineEl.style.display = 'block';
+
+  // Aggregate by test name
+  const byTest = {};
+  reports.forEach(r => {
+    if (!byTest[r.testName]) byTest[r.testName] = { count: 0, lastDate: '', diagnoses: [] };
+    byTest[r.testName].count++;
+    byTest[r.testName].lastDate = r.date;
+    if (!byTest[r.testName].diagnoses.includes(r.diagnosis)) byTest[r.testName].diagnoses.push(r.diagnosis);
+  });
+
+  const rowsEl = document.getElementById('reports-rows');
+  rowsEl.innerHTML = Object.entries(byTest).map(([name, data]) => {
+    const latestDiag = data.diagnoses[data.diagnoses.length - 1];
+    const isNormal = latestDiag.includes('Normal');
+    const diagColor = isNormal ? '#22c55e' : '#f59e0b';
+    return `<div style="padding:1.1rem 1.5rem;border-bottom:1px solid var(--border-light);display:grid;grid-template-columns:2fr 1fr 1fr 2fr;gap:1rem;align-items:center;transition:background .15s" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='transparent'">
+      <span style="font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--text-primary)">${name}</span>
+      <span style="font-size:.88rem;color:var(--text-secondary)">${data.count}×</span>
+      <span style="font-size:.82rem;color:var(--text-muted)">${data.lastDate}</span>
+      <span style="font-size:.82rem;font-weight:600;color:${diagColor}">${latestDiag}</span>
+    </div>`;
+  }).join('');
+
+  // Timeline (last 8)
+  const recent = [...reports].reverse().slice(0, 8);
+  const timelineList = document.getElementById('timeline-list');
+  timelineList.innerHTML = recent.map(r => {
+    const isNormal = r.diagnosis.includes('Normal');
+    const dot = isNormal ? '#22c55e' : '#f59e0b';
+    return `<div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1rem">
+      <div style="width:10px;height:10px;border-radius:50%;background:${dot};flex-shrink:0;margin-top:.3rem;box-shadow:0 0 6px ${dot}88"></div>
+      <div>
+        <div style="font-size:.88rem;font-weight:700;color:var(--text-primary);font-family:'Syne',sans-serif">${r.testName}</div>
+        <div style="font-size:.8rem;color:${dot};margin:.15rem 0">${r.diagnosis}</div>
+        <div style="font-size:.75rem;color:var(--text-muted)">${r.date} · ${r.time}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Initialize tests when page loads
+document.addEventListener('DOMContentLoaded', function() {
+  if (document.getElementById('ishihara-container')) {
+    displayIshiharaPlate();
+  }
+  if (document.getElementById('assessment-container')) {
+    displayAssessmentQuestion();
+  }
+  updateContrastUI();
+  renderAuthSlots();
+});
+</script>
+</body>
+</html>

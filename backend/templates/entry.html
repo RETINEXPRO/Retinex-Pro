@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Retinex Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Instrument+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE RETINEX PRO ENTRY PAGE
+═══════════════════════════════════════════════════════ */
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;width:100%;margin:0;padding:0}
+
+:root {
+  --bg-primary: #07070f;
+  --bg-secondary: rgba(7,7,15,.85);
+  --bg-tertiary: rgba(255,255,255,.025);
+  --bg-card: rgba(12, 12, 22, 0.9);
+  --bg-hover: rgba(0,229,255,.05);
+  --text-primary: #e0e0f0;
+  --text-secondary: #5a5a80;
+  --text-tertiary: #4a4a6a;
+  --text-muted: #3a3a58;
+  --border-light: rgba(255,255,255,.05);
+  --border-medium: rgba(255,255,255,.06);
+  --border-strong: rgba(255,255,255,.12);
+  --accent-cyan: #00e5ff;
+  --accent-purple: #a855f7;
+}
+
+body.light-theme {
+  --bg-primary: #f5f5fb;
+  --bg-secondary: rgba(255,255,255,.95);
+  --bg-tertiary: rgba(0,0,0,.04);
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-hover: rgba(0,150,200,.08);
+  --text-primary: #121222;
+  --text-secondary: #5a5a75;
+  --text-tertiary: #666688;
+  --text-muted: #9e9eb1;
+  --border-light: rgba(0,0,0,.06);
+  --border-medium: rgba(0,0,0,.08);
+  --border-strong: rgba(0,0,0,.15);
+  --accent-cyan: #0088aa;
+  --accent-purple: #8844cc;
+}
+
+body{
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family:'Instrument Sans',sans-serif;
+  min-height:100vh;
+  position:relative;
+  transition: background 0.3s ease, color 0.3s ease;
+  overflow-x:hidden;
+}
+
+/* Spectrum bar */
+.spectrum{
+  position:fixed;top:0;left:0;right:0;height:3px;z-index:20;
+  background:linear-gradient(to right,#e84040,#e87040,#e8b040,#e8d840,#a8e840,#40e870,#40e8c0,#40b8e8,#4070e8,#7040e8,#b040e8,#e040b8);
+}
+
+/* Orbs */
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;opacity:0.08}
+.o1{width:650px;height:650px;background:radial-gradient(ellipse,rgba(0,229,255,.1),transparent 65%);top:-200px;left:-180px}
+.o2{width:550px;height:550px;background:radial-gradient(ellipse,rgba(168,85,247,.1),transparent 65%);bottom:-160px;right:-120px}
+.o3{width:300px;height:300px;background:radial-gradient(ellipse,rgba(255,85,51,.1),transparent 65%);top:40%;left:50%;transform:translateX(-50%)}
+
+/* Theme button */
+.theme-switcher {
+  position:fixed;top:1rem;right:1.5rem;z-index:15;
+  padding: 0.4rem 1.1rem;
+  border-radius: 8px;
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(0.65rem, 2vw, 0.78rem);
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  letter-spacing: 0.01em;
+}
+
+.theme-switcher:hover {
+  color: var(--text-primary);
+  border-color: rgba(255,255,255,.3);
+  background: rgba(255,255,255,.04);
+}
+
+/* Pages */
+.page{
+  position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;
+  z-index:1;padding:0;margin:0;
+  transition:opacity .45s ease, transform .45s ease;
+}
+.page.gone{
+  opacity:0;pointer-events:none;transform:scale(.97);
+}
+
+/* Launch page */
+.page#launch .center{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:1rem;
+  min-height:100vh;
+}
+
+.eye-logo{
+  margin-bottom:1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.eye-logo svg{
+  width:clamp(40px, 10vw, 60px);
+  height:auto;
+}
+
+.site-name{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0.3rem;
+  margin-bottom:2rem;
+  text-align:center;
+}
+
+.site-name .top-word{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:clamp(2.5rem, 12vw, 4rem);
+  letter-spacing:-0.04em;
+  line-height:0.9;
+}
+
+.site-name .bot-word{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:clamp(2.5rem, 12vw, 4rem);
+  letter-spacing:-0.04em;
+  background:linear-gradient(130deg,#00e5ff,#a855f7 60%,#ff5533);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.login-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:0.6rem;
+  padding:clamp(0.75rem, 2vw, 0.95rem) clamp(1.8rem, 5vw, 2.4rem);
+  background:var(--accent-cyan);
+  color:#000;
+  font-family:'Syne',sans-serif;
+  font-size:clamp(0.85rem, 2.5vw, 1rem);
+  font-weight:800;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  box-shadow:0 0 50px rgba(0,229,255,.3);
+  transition:all .2s;
+  letter-spacing:0.01em;
+}
+
+.login-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 0 70px rgba(0,229,255,.5);
+}
+
+.login-btn:active{
+  transform:translateY(-1px);
+}
+
+.login-btn svg{
+  width:clamp(12px, 3vw, 16px);
+  height:auto;
+}
+
+/* Auth card */
+.auth-card{
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%, -50%);
+  width:min(100% - 2rem, 420px);
+  max-height:calc(100vh - 2rem);
+  overflow-y:auto;
+  background:var(--bg-card);
+  border:1px solid var(--border-medium);
+  border-radius:16px;
+  padding:clamp(1.5rem, 4vw, 2.5rem);
+  box-shadow:0 8px 40px rgba(0,0,0,.3);
+  backdrop-filter:blur(20px);
+  z-index:5;
+}
+
+.back{
+  display:inline-flex;
+  align-items:center;
+  gap:0.4rem;
+  background:none;
+  border:none;
+  color:var(--text-muted);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:clamp(0.75rem, 2vw, 0.82rem);
+  cursor:pointer;
+  margin-bottom:1.5rem;
+  transition:color .2s;
+  padding:0;
+}
+
+.back:hover{
+  color:var(--text-primary);
+}
+
+.back svg{
+  width:clamp(12px, 2vw, 14px);
+  height:auto;
+}
+
+.clogo{
+  display:flex;
+  align-items:center;
+  gap:0.5rem;
+  margin-bottom:1.5rem;
+}
+
+.clogo-eye{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.clogo-eye svg{
+  width:clamp(16px, 3vw, 20px);
+  height:auto;
+}
+
+.clogo-name{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:clamp(0.85rem, 2.5vw, 1rem);
+  letter-spacing:-0.02em;
+}
+
+.clogo-name em{
+  font-style:normal;
+  background:linear-gradient(130deg,#00e5ff,#a855f7);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+/* Auth views */
+.av{
+  display:none;
+  animation:fadeIn .3s ease;
+}
+
+.av.on{
+  display:block;
+}
+
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:none}
+}
+
+.vtitle{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(1.3rem, 4vw, 1.6rem);
+  font-weight:800;
+  letter-spacing:-0.02em;
+  margin-bottom:0.5rem;
+  color:var(--text-primary);
+}
+
+.vsub{
+  font-size:clamp(0.82rem, 2vw, 0.92rem);
+  color:var(--text-secondary);
+  font-weight:300;
+  line-height:1.6;
+  margin-bottom:1.5rem;
+}
+
+.gbtn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.6rem;
+  padding:clamp(0.75rem, 2vw, 0.9rem);
+  border:1px solid var(--border-strong);
+  border-radius:10px;
+  background:transparent;
+  color:var(--text-primary);
+  font-family:'Syne',sans-serif;
+  font-size:clamp(0.82rem, 2vw, 0.9rem);
+  font-weight:700;
+  cursor:pointer;
+  transition:all .2s;
+}
+
+.gbtn:hover{
+  border-color:rgba(255,255,255,.25);
+  background:rgba(255,255,255,.03);
+}
+
+.gbtn svg{
+  width:clamp(14px, 3vw, 17px);
+  height:auto;
+  flex-shrink:0;
+}
+
+.divr{
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  margin:1.5rem 0;
+  font-size:clamp(0.72rem, 2vw, 0.8rem);
+  color:var(--text-muted);
+}
+
+.divr::before,.divr::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border-light);
+}
+
+.nrow{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1rem;
+}
+
+@media (max-width:480px){
+  .nrow{
+    grid-template-columns:1fr;
+    gap:0.8rem;
+  }
+}
+
+.fld{
+  display:flex;
+  flex-direction:column;
+  gap:0.4rem;
+  margin-bottom:1rem;
+}
+
+.fld label{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(0.75rem, 2vw, 0.82rem);
+  font-weight:700;
+  color:var(--text-secondary);
+  letter-spacing:0.02em;
+}
+
+.fld input[type="text"],
+.fld input[type="email"],
+.fld input[type="password"]{
+  padding:clamp(0.65rem, 2vw, 0.8rem) clamp(0.8rem, 3vw, 1rem);
+  border-radius:8px;
+  border:1px solid var(--border-strong);
+  background:var(--bg-tertiary);
+  color:var(--text-primary);
+  font-family:'Instrument Sans',sans-serif;
+  font-size:clamp(0.82rem, 2vw, 0.92rem);
+  outline:none;
+  transition:all .2s;
+}
+
+.fld input[type="text"]:focus,
+.fld input[type="email"]:focus,
+.fld input[type="password"]:focus{
+  border-color:var(--accent-cyan);
+  background:var(--bg-tertiary);
+  box-shadow:0 0 0 2px rgba(0,229,255,.1);
+}
+
+.fld input::placeholder{
+  color:var(--text-muted);
+}
+
+.pww{
+  position:relative;
+  display:flex;
+  align-items:center;
+}
+
+.pww input{
+  width:100%;
+  padding-right:2.8rem;
+}
+
+.peye{
+  position:absolute;
+  right:0.7rem;
+  background:none;
+  border:none;
+  color:var(--text-muted);
+  cursor:pointer;
+  padding:0.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:color .2s;
+}
+
+.peye:hover{
+  color:var(--text-primary);
+}
+
+.peye svg{
+  width:clamp(12px, 2vw, 15px);
+  height:auto;
+}
+
+.forgot{
+  display:block;
+  font-size:clamp(0.75rem, 2vw, 0.82rem);
+  color:var(--accent-cyan);
+  text-decoration:none;
+  margin-bottom:1rem;
+  transition:color .2s;
+}
+
+.forgot:hover{
+  color:#00d4e8;
+}
+
+.err-msg{
+  color:#ff6b6b;
+  font-size:clamp(0.75rem, 2vw, 0.82rem);
+  margin-bottom:0.8rem;
+  min-height:1.2rem;
+}
+
+.sbtn{
+  width:100%;
+  padding:clamp(0.8rem, 2vw, 0.95rem);
+  background:var(--accent-cyan);
+  color:#000;
+  font-family:'Syne',sans-serif;
+  font-size:clamp(0.88rem, 2vw, 0.95rem);
+  font-weight:800;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  box-shadow:0 0 20px rgba(0,229,255,.25);
+  transition:all .2s;
+  letter-spacing:0.01em;
+}
+
+.sbtn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 0 30px rgba(0,229,255,.4);
+}
+
+.sbtn:active{
+  transform:translateY(0);
+}
+
+.swt{
+  text-align:center;
+  font-size:clamp(0.78rem, 2vw, 0.88rem);
+  color:var(--text-secondary);
+  margin-top:1.2rem;
+  font-weight:300;
+  line-height:1.6;
+}
+
+.swt a{
+  color:var(--accent-cyan);
+  text-decoration:none;
+  font-weight:600;
+  transition:color .2s;
+}
+
+.swt a:hover{
+  color:#00d4e8;
+}
+
+.terms{
+  text-align:center;
+  font-size:clamp(0.7rem, 2vw, 0.78rem);
+  color:var(--text-muted);
+  margin-top:1rem;
+  line-height:1.6;
+}
+
+/* Footer */
+.foot{
+  border-top:1px solid var(--border-light);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.5rem;
+  padding:clamp(1rem, 2vw, 1.5rem);
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  z-index:2;
+  background:var(--bg-secondary);
+  backdrop-filter:blur(10px);
+}
+
+.fdot{
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:rgba(255,255,255,.1);
+}
+
+.ftxt{
+  font-size:clamp(0.65rem, 2vw, 0.7rem);
+  color:var(--text-muted);
+  letter-spacing:0.08em;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar{
+  width:6px;
+}
+
+::-webkit-scrollbar-track{
+  background:var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb{
+  background:var(--border-strong);
+  border-radius:3px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+  background:rgba(255,255,255,.2);
+}
+
+/* Mobile optimizations */
+@media (max-width:768px){
+  body{
+    padding:0;
+  }
+
+  .auth-card{
+    border-radius:12px;
+    width:calc(100% - 1.5rem);
+    margin:0 0.75rem;
+  }
+
+  .page#launch .center{
+    padding:1rem 0.75rem;
+  }
+
+  .nrow{
+    gap:0.8rem;
+  }
+
+  .foot{
+    padding:0.8rem;
+    gap:0.4rem;
+  }
+}
+
+@media (max-width:480px){
+  .auth-card{
+    width:calc(100% - 1rem);
+    padding:1.5rem 1rem;
+    border-radius:12px;
+  }
+
+  .fld{
+    margin-bottom:0.9rem;
+  }
+
+  .gbtn,
+  .sbtn{
+    font-size:0.85rem;
+    padding:0.75rem;
+  }
+
+  .site-name .top-word,
+  .site-name .bot-word{
+    font-size:clamp(2rem, 10vw, 3rem);
+  }
+
+  .eye-logo{
+    margin-bottom:1.2rem;
+  }
+
+  .theme-switcher{
+    top:0.75rem;
+    right:1rem;
+    padding:0.35rem 0.9rem;
+    font-size:0.65rem;
+  }
+
+  .foot{
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+}
+
+/* Light theme adjustments */
+.light-theme .auth-card{
+  background:rgba(255,255,255,.95);
+}
+
+.light-theme .gbtn:hover{
+  border-color:var(--border-strong);
+  background:rgba(0,0,0,.02);
+}
+
+.light-theme .back:hover{
+  color:var(--text-primary);
+}
+
+.light-theme .peye:hover{
+  color:var(--text-primary);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .av, .page {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  .border-light { --border-light: rgba(255,255,255,.15); }
+  .border-strong { --border-strong: rgba(255,255,255,.25); }
+}
+
+/* Print styles */
+@media print {
+  .theme-switcher,
+  .spectrum,
+  .orb,
+  .foot {
+    display: none;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<button class="theme-switcher" onclick="toggleTheme()" id="themeBtn">Switch To Light</button>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+<div class="spectrum"></div>
+
+<!-- ══ LAUNCH ══ -->
+<div class="page" id="launch">
+  <div class="center">
+
+    <!-- Large animated eye logo -->
+    <div class="eye-logo">
+      <svg width="48" height="34" viewBox="0 0 64 44" fill="none">
+        <path d="M2 22C2 22 13 2 32 2C51 2 62 22 62 22C62 22 51 42 32 42C13 42 2 22 2 22Z"
+          stroke="#00e5ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="rgba(0,229,255,0.06)"/>
+        <circle cx="32" cy="22" r="10" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="2.5"/>
+        <circle cx="32" cy="22" r="5" fill="#00e5ff"/>
+        <circle cx="36" cy="18" r="2" fill="rgba(255,255,255,0.7)"/>
+      </svg>
+    </div>
+
+    <div class="site-name">
+      <span class="top-word">RETINEX</span>
+      <span class="bot-word">PRO</span>
+    </div>
+
+    <button class="login-btn" onclick="goAuth()">
+      Log In
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ══ AUTH ══ -->
+<div class="page gone" id="auth">
+  <div class="auth-card">
+    <button class="back" onclick="goLaunch()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back
+    </button>
+
+    <!-- Small eye + name in card -->
+    <div class="clogo">
+      <div class="clogo-eye">
+        <svg width="18" height="13" viewBox="0 0 64 44" fill="none">
+          <path d="M2 22C2 22 13 2 32 2C51 2 62 22 62 22C62 22 51 42 32 42C13 42 2 22 2 22Z"
+            stroke="#00e5ff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="rgba(0,229,255,0.06)"/>
+          <circle cx="32" cy="22" r="10" fill="rgba(0,229,255,0.15)" stroke="#00e5ff" stroke-width="3.5"/>
+          <circle cx="32" cy="22" r="5" fill="#00e5ff"/>
+          <circle cx="36" cy="18" r="2" fill="rgba(255,255,255,0.7)"/>
+        </svg>
+      </div>
+      <span class="clogo-name">RETINEX <em>PRO</em></span>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="av on" id="loginView">
+      <h2 class="vtitle">Welcome back</h2>
+      <p class="vsub">Sign in to your Retinex Pro account</p>
+      <button class="gbtn">
+        <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divr"><span>or sign in with email</span></div>
+      <div class="fld"><label>Email address</label><input type="email" id="lEmail" placeholder="you@example.com"/></div>
+      <div class="fld">
+        <label>Password</label>
+        <div class="pww">
+          <input type="password" id="lPw" placeholder="Enter your password"/>
+          <button class="peye" onclick="tPw('lPw',this)" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <a href="#" class="forgot">Forgot password?</a>
+      <div id="loginErr" class="err-msg"></div>
+      <button class="sbtn" onclick="doLogin()">Sign In</button>
+      <p class="swt">Don't have an account? <a href="#" onclick="sv('signupView');return false">Sign up</a></p>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="av" id="signupView">
+      <h2 class="vtitle">Create account</h2>
+      <p class="vsub">Join Retinex Pro today</p>
+      <button class="gbtn">
+        <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <div class="divr"><span>or sign up with email</span></div>
+      <div class="nrow">
+        <div class="fld"><label>First name</label><input type="text" id="sFirstName" placeholder="John"/></div>
+        <div class="fld"><label>Last name</label><input type="text" id="sLastName" placeholder="Doe"/></div>
+      </div>
+      <div class="fld"><label>Email address</label><input type="email" id="sEmail" placeholder="you@example.com"/></div>
+      <div class="fld">
+        <label>Password</label>
+        <div class="pww">
+          <input type="password" id="sPw" placeholder="Create a password"/>
+          <button class="peye" onclick="tPw('sPw',this)" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="fld" style="margin-bottom:1.2rem">
+        <label>Confirm password</label>
+        <div class="pww">
+          <input type="password" id="cPw" placeholder="Repeat your password"/>
+          <button class="peye" onclick="tPw('cPw',this)" tabindex="-1">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="signupErr" class="err-msg"></div>
+      <button class="sbtn" onclick="doSignup()">Create Account</button>
+      <p class="swt">Already have an account? <a href="#" onclick="sv('loginView');return false">Sign in</a></p>
+      <p class="terms">By signing up you agree to our Terms of Service and Privacy Policy.</p>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span class="fdot"></span>
+  <span class="ftxt">RETINEX PRO &nbsp;·&nbsp; 2026</span>
+  <span class="fdot"></span>
+</div>
+
+<script>
+function toggleTheme(){
+  const isLight=document.body.classList.toggle('light-theme');
+  document.getElementById('themeBtn').innerText=isLight?'Switch To Dark':'Switch To Light';
+}
+function goAuth(){
+  document.getElementById('launch').classList.add('gone');
+  document.getElementById('auth').classList.remove('gone');
+  sv('loginView');
+}
+function goLaunch(){
+  document.getElementById('auth').classList.add('gone');
+  document.getElementById('launch').classList.remove('gone');
+}
+function sv(id){
+  document.querySelectorAll('.av').forEach(v=>v.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+function tPw(id,btn){
+  const inp=document.getElementById(id);
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  btn.querySelector('svg').innerHTML=show
+    ?'<line x1="1" y1="1" x2="23" y2="23" stroke="currentColor" stroke-width="2"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a18.07 18.07 0 0 1-2.08 3.09" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 8 11 8a9.74 9.74 0 0 0 5.39-1.61" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+    :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
+/* ═══ LOGIN ═══ */
+async function doLogin(){
+  const email    = document.getElementById('lEmail').value.trim();
+  const password = document.getElementById('lPw').value;
+  const errEl    = document.getElementById('loginErr');
+  errEl.textContent = '';
+
+  if(!email || !password){
+    errEl.textContent = 'Please fill in all fields.';
+    return;
+  }
+
+  try {
+    const res  = await fetch('/api/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if(data.error){
+      errEl.textContent = data.error;
+    } else if(data.redirect){
+      window.location.href = data.redirect;
+    }
+  } catch(e){
+    errEl.textContent = 'Network error. Please try again.';
+  }
+}
+
+/* ═══ SIGNUP ═══ */
+async function doSignup(){
+  const firstName = document.getElementById('sFirstName').value.trim();
+  const lastName  = document.getElementById('sLastName').value.trim();
+  const email     = document.getElementById('sEmail').value.trim();
+  const password  = document.getElementById('sPw').value;
+  const confirm   = document.getElementById('cPw').value;
+  const errEl     = document.getElementById('signupErr');
+  errEl.textContent = '';
+
+  if(!firstName || !lastName || !email || !password || !confirm){
+    errEl.textContent = 'Please fill in all fields.';
+    return;
+  }
+  if(password !== confirm){
+    errEl.textContent = 'Passwords do not match.';
+    return;
+  }
+
+  try {
+    const res  = await fetch('/api/signup', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ firstName, lastName, email, password })
+    });
+    const data = await res.json();
+    if(data.error){
+      errEl.textContent = data.error;
+    } else if(data.redirect){
+      window.location.href = data.redirect;
+    }
+  } catch(e){
+    errEl.textContent = 'Network error. Please try again.';
+  }
+}
+</script>
+</body>
+</html>
